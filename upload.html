@@ -13,13 +13,10 @@
       --text-muted: #64748b;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
+      --btc: #f7931a;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -47,21 +44,9 @@
       padding-bottom: 14px;
     }
 
-    header h1 {
-      font-size: 1.3rem;
-      font-weight: 800;
-    }
-
-    header a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    header a:hover {
-      color: var(--text);
-    }
+    header h1 { font-size: 1.3rem; font-weight: 800; }
+    header a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+    header a:hover { color: var(--text); }
 
     label {
       display: block;
@@ -93,6 +78,19 @@
       display: grid;
       grid-template-columns: 2fr 1fr;
       gap: 12px;
+    }
+
+    .btc-box {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 16px;
+    }
+
+    .btc-box label {
+      color: #9a3412;
+      margin-top: 0;
     }
 
     .image-dropzone {
@@ -130,24 +128,18 @@
       width: 100%;
       margin-top: 24px;
       padding: 12px;
-      background: var(--accent);
+      background: var(--btc);
       color: #fff;
       border: none;
       border-radius: 8px;
       font-size: 1rem;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.15s ease;
+      transition: opacity 0.15s ease;
     }
 
-    button:hover {
-      background: var(--accent-hover);
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -178,8 +170,14 @@
         </div>
       </div>
 
+      <!-- Bitcoin Address Field -->
+      <div class="btc-box">
+        <label for="btcAddress">⚡ Your Bitcoin Wallet Address (to receive payout)</label>
+        <input type="text" id="btcAddress" required placeholder="bc1q... or 1A1z...">
+      </div>
+
       <label for="description">Description</label>
-      <textarea id="description" rows="4" placeholder="Condition details (e.g. Near Mint, PSA 9), set details, notes..."></textarea>
+      <textarea id="description" rows="3" placeholder="Condition details, card set, authenticity notes..."></textarea>
 
       <label for="photo">Card Photo</label>
       <div class="image-dropzone" onclick="document.getElementById('photo').click()">
@@ -191,7 +189,7 @@
         <img id="preview-img" src="" alt="Preview">
       </div>
 
-      <button type="submit" id="submit-btn">Publish Card for Sale</button>
+      <button type="submit" id="submit-btn">Publish Card (Accept Bitcoin)</button>
     </form>
   </div>
 
@@ -252,6 +250,7 @@
       const title = document.getElementById('title').value;
       const price = document.getElementById('price').value;
       const currency = document.getElementById('currency').value;
+      const btcAddress = document.getElementById('btcAddress').value.trim();
       const description = document.getElementById('description').value;
       const file = photoInput.files[0];
 
@@ -261,7 +260,14 @@
         const res = await fetch('/api/listings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, price, currency, description, image: imageBase64 })
+          body: JSON.stringify({ 
+            title, 
+            price, 
+            currency, 
+            btcAddress, 
+            description, 
+            image: imageBase64 
+          })
         });
 
         if (res.ok) {
@@ -272,7 +278,7 @@
       } catch (err) {
         alert("Failed to publish: " + err.message);
         btn.disabled = false;
-        btn.innerText = "Publish Card for Sale";
+        btn.innerText = "Publish Card (Accept Bitcoin)";
       }
     });
   </script>
