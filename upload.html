@@ -11,135 +11,22 @@
       --border: #e2e8f0;
       --text: #0f172a;
       --text-muted: #64748b;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
       --btc: #f7931a;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      padding: 20px 15px 60px;
-    }
-
-    .form-box {
-      max-width: 500px;
-      margin: 30px auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 14px;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px 15px 60px; }
+    .form-box { max-width: 500px; margin: 30px auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
     header h1 { font-size: 1.3rem; font-weight: 800; }
-    header a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
-    header a:hover { color: var(--text); }
-
-    label {
-      display: block;
-      margin-top: 16px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-top: 6px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      background: #fff;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .row-2 {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 12px;
-    }
-
-    .btc-box {
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 16px;
-    }
-
-    .btc-box label {
-      color: #9a3412;
-      margin-top: 0;
-    }
-
-    .image-dropzone {
-      margin-top: 6px;
-      border: 2px dashed var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      background: #fafafa;
-    }
-
-    .image-dropzone:hover {
-      border-color: var(--accent);
-      background: #f1f5f9;
-    }
-
-    .preview-box {
-      margin-top: 10px;
-      display: none;
-      width: 100%;
-      max-height: 220px;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .preview-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 24px;
-      padding: 12px;
-      background: var(--btc);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.15s ease;
-    }
-
-    button:hover { opacity: 0.9; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    header a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+    label { display: block; margin-top: 16px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; margin-top: 6px; font-size: 0.95rem; font-family: inherit; }
+    .row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+    .escrow-notice { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; margin-top: 16px; font-size: 0.85rem; color: #1e40af; }
+    .image-dropzone { margin-top: 6px; border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; background: #fafafa; }
+    .preview-box { margin-top: 10px; display: none; width: 100%; max-height: 220px; border-radius: 6px; overflow: hidden; }
+    .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+    button { width: 100%; margin-top: 24px; padding: 12px; background: var(--btc); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -152,12 +39,12 @@
 
     <form id="sell-form">
       <label for="title">Card Name</label>
-      <input type="text" id="title" required placeholder="e.g. Charizard Base Set Holo">
+      <input type="text" id="title" required placeholder="e.g. 1st Edition Charizard">
 
       <div class="row-2">
         <div>
           <label for="price">Price</label>
-          <input type="number" id="price" step="any" required placeholder="50.00">
+          <input type="number" id="price" step="any" required placeholder="100.00">
         </div>
         <div>
           <label for="currency">Currency</label>
@@ -170,18 +57,19 @@
         </div>
       </div>
 
-      <!-- Bitcoin Address Field -->
-      <div class="btc-box">
-        <label for="btcAddress">⚡ Your Bitcoin Wallet Address (to receive payout)</label>
-        <input type="text" id="btcAddress" required placeholder="bc1q... or 1A1z...">
+      <label for="payout">Your Payout Bitcoin Address</label>
+      <input type="text" id="payout" required placeholder="bc1q... (where gemvi forwards your money)">
+
+      <div class="escrow-notice">
+        🔒 <b>Platform Escrow:</b> The buyer sends payment to the platform vault first. Once you ship the card and delivery is verified, your payout is forwarded to your address above.
       </div>
 
-      <label for="description">Description</label>
-      <textarea id="description" rows="3" placeholder="Condition details, card set, authenticity notes..."></textarea>
+      <label for="description">Card Description</label>
+      <textarea id="description" rows="3" placeholder="Condition, set name, shipping instructions..."></textarea>
 
       <label for="photo">Card Photo</label>
       <div class="image-dropzone" onclick="document.getElementById('photo').click()">
-        <span id="photo-label">📷 Tap to upload card photo</span>
+        <span id="photo-label">📷 Tap to select photo</span>
         <input type="file" id="photo" accept="image/*" style="display: none;">
       </div>
 
@@ -189,24 +77,20 @@
         <img id="preview-img" src="" alt="Preview">
       </div>
 
-      <button type="submit" id="submit-btn">Publish Card (Accept Bitcoin)</button>
+      <button type="submit" id="submit-btn">List Card for Sale</button>
     </form>
   </div>
 
   <script>
     const photoInput = document.getElementById('photo');
-    const previewBox = document.getElementById('preview-box');
-    const previewImg = document.getElementById('preview-img');
-    const photoLabel = document.getElementById('photo-label');
-
     photoInput.addEventListener('change', () => {
       const file = photoInput.files[0];
       if (file) {
-        photoLabel.innerText = "Selected: " + file.name;
+        document.getElementById('photo-label').innerText = file.name;
         const reader = new FileReader();
         reader.onload = (e) => {
-          previewImg.src = e.target.result;
-          previewBox.style.display = 'block';
+          document.getElementById('preview-img').src = e.target.result;
+          document.getElementById('preview-box').style.display = 'block';
         };
         reader.readAsDataURL(file);
       }
@@ -221,17 +105,10 @@
           img.onload = () => {
             const canvas = document.createElement('canvas');
             const maxDim = 800;
-            let width = img.width;
-            let height = img.height;
-            if (width > height && width > maxDim) {
-              height *= maxDim / width;
-              width = maxDim;
-            } else if (height > maxDim) {
-              width *= maxDim / height;
-              height = maxDim;
-            }
-            canvas.width = width;
-            canvas.height = height;
+            let width = img.width, height = img.height;
+            if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
+            else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+            canvas.width = width; canvas.height = height;
             canvas.getContext('2d').drawImage(img, 0, 0, width, height);
             resolve(canvas.toDataURL('image/jpeg', 0.75));
           };
@@ -244,44 +121,28 @@
     document.getElementById('sell-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
-      btn.disabled = true;
-      btn.innerText = "Publishing card...";
+      btn.disabled = true; btn.innerText = "Publishing...";
 
       const title = document.getElementById('title').value;
       const price = document.getElementById('price').value;
       const currency = document.getElementById('currency').value;
-      const btcAddress = document.getElementById('btcAddress').value.trim();
+      const sellerPayoutAddress = document.getElementById('payout').value.trim();
       const description = document.getElementById('description').value;
-      const file = photoInput.files[0];
 
       try {
-        const imageBase64 = await processImage(file);
-
+        const imageBase64 = await processImage(photoInput.files[0]);
         const res = await fetch('/api/listings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            title, 
-            price, 
-            currency, 
-            btcAddress, 
-            description, 
-            image: imageBase64 
-          })
+          body: JSON.stringify({ title, price, currency, sellerPayoutAddress, description, image: imageBase64 })
         });
-
-        if (res.ok) {
-          window.location.href = 'index.html';
-        } else {
-          throw new Error('Upload error');
-        }
+        if (res.ok) window.location.href = 'index.html';
+        else throw new Error('Listing failed');
       } catch (err) {
-        alert("Failed to publish: " + err.message);
-        btn.disabled = false;
-        btn.innerText = "Publish Card (Accept Bitcoin)";
+        alert(err.message);
+        btn.disabled = false; btn.innerText = "List Card for Sale";
       }
     });
   </script>
-
 </body>
 </html>
