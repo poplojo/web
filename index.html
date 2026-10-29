@@ -12,16 +12,13 @@
       --text: #0f172a;
       --text-muted: #64748b;
       --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --badge-bg: #dbeafe;
-      --badge-text: #1d4ed8;
+      --btc: #f7931a;
+      --btc-dark: #c26e07;
+      --badge-bg: #fff7ed;
+      --badge-text: #c2410c;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -48,31 +45,20 @@
       align-items: center;
     }
 
-    .brand h1 {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .brand p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
+    .brand h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+    .brand p { font-size: 0.8rem; color: var(--text-muted); }
 
     .btn-sell {
-      background: var(--accent);
+      background: var(--btc);
       color: #fff;
       text-decoration: none;
       padding: 10px 18px;
       border-radius: 8px;
       font-weight: 600;
       font-size: 0.9rem;
-      transition: background 0.15s ease;
+      transition: opacity 0.15s ease;
     }
-
-    .btn-sell:hover {
-      background: var(--accent-hover);
-    }
+    .btn-sell:hover { opacity: 0.9; }
 
     main {
       max-width: 1100px;
@@ -80,14 +66,8 @@
       padding: 0 20px;
     }
 
-    .hero-text {
-      margin-bottom: 24px;
-    }
-
-    .hero-text h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
+    .hero-text { margin-bottom: 24px; }
+    .hero-text h2 { font-size: 1.25rem; font-weight: 700; }
 
     .cards-grid {
       display: grid;
@@ -123,29 +103,22 @@
       overflow: hidden;
     }
 
-    .card-image-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .card-image-box img { width: 100%; height: 100%; object-fit: cover; }
+    .card-image-box .placeholder-icon { font-size: 2.5rem; color: var(--text-muted); }
 
-    .card-image-box .placeholder-icon {
-      font-size: 2.5rem;
-      color: var(--text-muted);
-    }
-
-    .badge-sale {
+    .badge-btc {
       position: absolute;
       top: 10px;
       left: 10px;
       background: var(--badge-bg);
       color: var(--badge-text);
       font-size: 0.72rem;
-      font-weight: 700;
+      font-weight: 800;
       padding: 3px 8px;
       border-radius: 20px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      border: 1px solid #ffedd5;
     }
 
     .card-body {
@@ -177,27 +150,27 @@
     .price-amount {
       font-size: 1.25rem;
       font-weight: 800;
-      color: var(--accent);
+      color: var(--text);
       margin-bottom: 12px;
     }
 
     .btn-buy {
       width: 100%;
-      padding: 9px;
-      background: var(--accent);
-      border: 1px solid var(--accent);
+      padding: 10px;
+      background: var(--btc);
+      border: none;
       border-radius: 6px;
       color: #fff;
-      font-weight: 600;
-      font-size: 0.85rem;
+      font-weight: 700;
+      font-size: 0.9rem;
       cursor: pointer;
       text-align: center;
-      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
-
-    .btn-buy:hover {
-      background: var(--accent-hover);
-    }
+    .btn-buy:hover { background: var(--btc-dark); }
 
     .status-msg {
       text-align: center;
@@ -206,11 +179,11 @@
       font-size: 1rem;
     }
 
-    /* Modal */
+    /* Modal / Bitcoin Checkout */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.7);
       backdrop-filter: blur(4px);
       display: none;
       align-items: center;
@@ -218,19 +191,16 @@
       padding: 16px;
       z-index: 1000;
     }
-
-    .modal-overlay.active {
-      display: flex;
-    }
+    .modal-overlay.active { display: flex; }
 
     .modal-box {
       background: var(--surface);
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
       max-height: 90vh;
       border-radius: 16px;
       overflow-y: auto;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
       position: relative;
     }
 
@@ -253,79 +223,98 @@
 
     .modal-img-wrap {
       width: 100%;
-      max-height: 300px;
-      background: #f1f5f9;
+      max-height: 240px;
+      background: #0f172a;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
     }
+    .modal-img-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
-    .modal-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: #0f172a;
+    .modal-content { padding: 20px 24px 24px; }
+    .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
+
+    .btc-checkout-card {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+      text-align: center;
     }
 
-    .modal-content {
-      padding: 20px 24px 24px;
-    }
-
-    .modal-title {
-      font-size: 1.35rem;
+    .btc-price-tag {
+      font-size: 1.5rem;
       font-weight: 800;
-      margin-bottom: 6px;
+      color: #c2410c;
+      font-family: monospace;
     }
 
-    .modal-price {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: var(--accent);
-      margin-bottom: 16px;
+    .fiat-sub {
+      font-size: 0.85rem;
+      color: #9a3412;
+      margin-bottom: 12px;
     }
 
-    .section-label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
+    .qr-container {
+      margin: 12px auto;
+      width: 160px;
+      height: 160px;
+      background: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #fed7aa;
+    }
+    .qr-container img { width: 100%; height: 100%; }
+
+    .address-field {
+      background: #fff;
+      border: 1px solid #fed7aa;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-copy {
+      background: var(--btc);
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 6px;
+      flex-shrink: 0;
     }
 
     .modal-desc-box {
       background: #f8fafc;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px 14px;
-      font-size: 0.95rem;
-      line-height: 1.6;
+      padding: 12px;
+      font-size: 0.9rem;
+      color: #475569;
+      line-height: 1.5;
+      margin-bottom: 16px;
       white-space: pre-wrap;
-      color: #334155;
-      margin-bottom: 20px;
     }
 
     @media (max-width: 600px) {
-      .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-      }
-      .card-body {
-        padding: 10px;
-      }
-      .card-title {
-        font-size: 0.95rem;
-      }
-      .price-amount {
-        font-size: 1.1rem;
-      }
+      .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .card-body { padding: 10px; }
+      .card-title { font-size: 0.95rem; }
+      .price-amount { font-size: 1.1rem; }
     }
 
     @media (max-width: 380px) {
-      .cards-grid {
-        grid-template-columns: 1fr;
-      }
+      .cards-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -335,7 +324,7 @@
     <div class="nav-container">
       <div class="brand">
         <h1>gemvi</h1>
-        <p>Card Marketplace</p>
+        <p>Bitcoin Card Marketplace</p>
       </div>
       <a href="upload.html" class="btn-sell">+ Sell a Card</a>
     </div>
@@ -343,7 +332,7 @@
 
   <main>
     <div class="hero-text">
-      <h2>Cards for Sale</h2>
+      <h2>Cards for Sale (Pay with BTC)</h2>
     </div>
 
     <div id="listings-container" class="cards-grid">
@@ -351,28 +340,60 @@
     </div>
   </main>
 
-  <!-- Details / Buy Modal -->
+  <!-- Bitcoin Checkout Modal -->
   <div class="modal-overlay" id="card-modal" onclick="closeModalOnBg(event)">
     <div class="modal-box">
       <button class="modal-close" onclick="closeModal()">×</button>
       <div class="modal-img-wrap" id="modal-img-container"></div>
+      
       <div class="modal-content">
         <h3 class="modal-title" id="modal-title"></h3>
-        <div class="modal-price" id="modal-price"></div>
+        
+        <!-- Live Bitcoin Payment Box -->
+        <div class="btc-checkout-card">
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #9a3412;">Send Exactly</div>
+          <div class="btc-price-tag" id="modal-btc-amount">Calculating...</div>
+          <div class="fiat-sub" id="modal-fiat-amount"></div>
 
-        <div class="section-label">Card Details & Description</div>
+          <!-- QR Code generated automatically -->
+          <div class="qr-container">
+            <img id="modal-qr-code" src="" alt="Bitcoin QR Code">
+          </div>
+
+          <div style="font-size: 0.75rem; color: #9a3412; font-weight: 600;">Seller's Bitcoin Wallet:</div>
+          <div class="address-field">
+            <span id="modal-btc-address">...</span>
+            <button class="btn-copy" id="btn-copy-addr" onclick="copyText('modal-btc-address', this)">Copy</button>
+          </div>
+        </div>
+
+        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Card Description</div>
         <div class="modal-desc-box" id="modal-desc"></div>
 
-        <button class="btn-buy" style="padding: 12px; font-size: 1rem;" onclick="closeModal()">Close</button>
+        <button class="btn-buy" style="padding: 12px; width: 100%;" onclick="closeModal()">Close</button>
       </div>
     </div>
   </div>
 
   <script>
     let cardList = [];
+    let btcRates = null;
+
+    // Fetch live Bitcoin exchange rate from Coinbase
+    async function fetchBtcRates() {
+      try {
+        const res = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
+        const data = await res.json();
+        btcRates = data.data.rates;
+      } catch (err) {
+        console.warn('Could not fetch live BTC rates, using fallback.', err);
+        btcRates = { USD: 65000, EUR: 60000, GBP: 51000, CAD: 90000 };
+      }
+    }
 
     async function loadListings() {
       const container = document.getElementById('listings-container');
+      await fetchBtcRates();
 
       try {
         const res = await fetch('/api/listings');
@@ -381,7 +402,7 @@
         container.innerHTML = '';
 
         if (!cardList || cardList.length === 0) {
-          container.innerHTML = '<div class="status-msg">No cards for sale right now. Be the first to list one!</div>';
+          container.innerHTML = '<div class="status-msg">No cards for sale right now.</div>';
           return;
         }
 
@@ -394,29 +415,27 @@
             ? `<img src="${card.image}" alt="${card.title}">` 
             : `<div class="placeholder-icon">🎴</div>`;
 
-          const descSnippet = card.description 
-            ? card.description 
-            : 'No description provided.';
-
           cardDiv.innerHTML = `
             <div class="card-image-box">
-              <span class="badge-sale">For Sale</span>
+              <span class="badge-btc">₿ Bitcoin</span>
               ${imageSection}
             </div>
             <div class="card-body">
               <div>
                 <h3 class="card-title">${card.title}</h3>
-                <p class="card-desc">${descSnippet}</p>
+                <p class="card-desc">${card.description || 'No description provided.'}</p>
                 <div class="price-amount">${card.currency} ${card.price}</div>
               </div>
-              <button class="btn-buy" onclick="event.stopPropagation(); openModal(${index})">Buy Card</button>
+              <button class="btn-buy" onclick="event.stopPropagation(); openModal(${index})">
+                ₿ Buy with Bitcoin
+              </button>
             </div>
           `;
 
           container.appendChild(cardDiv);
         });
       } catch (err) {
-        container.innerHTML = '<div class="status-msg">Could not load cards. Please check your connection.</div>';
+        container.innerHTML = '<div class="status-msg">Could not load cards.</div>';
       }
     }
 
@@ -425,7 +444,6 @@
       if (!card) return;
 
       document.getElementById('modal-title').innerText = card.title;
-      document.getElementById('modal-price').innerText = `${card.currency} ${card.price}`;
       document.getElementById('modal-desc').innerText = card.description || 'No description provided for this card.';
 
       const imgContainer = document.getElementById('modal-img-container');
@@ -436,6 +454,22 @@
         imgContainer.style.display = 'none';
       }
 
+      // Convert Fiat to BTC
+      const fiatAmount = parseFloat(card.price) || 0;
+      const currency = (card.currency || 'USD').toUpperCase();
+      const rate = btcRates && btcRates[currency] ? parseFloat(btcRates[currency]) : 65000;
+      const btcAmount = (fiatAmount / rate).toFixed(8);
+
+      document.getElementById('modal-btc-amount').innerText = `₿ ${btcAmount} BTC`;
+      document.getElementById('modal-fiat-amount').innerText = `≈ ${card.currency} ${card.price} at live rate`;
+
+      const btcAddress = card.btcAddress || 'No Bitcoin address provided';
+      document.getElementById('modal-btc-address').innerText = btcAddress;
+
+      // Generate standard BIP21 Bitcoin QR code
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=bitcoin:${btcAddress}?amount=${btcAmount}`;
+      document.getElementById('modal-qr-code').src = qrUrl;
+
       document.getElementById('card-modal').classList.add('active');
     }
 
@@ -444,9 +478,15 @@
     }
 
     function closeModalOnBg(e) {
-      if (e.target.id === 'card-modal') {
-        closeModal();
-      }
+      if (e.target.id === 'card-modal') closeModal();
+    }
+
+    function copyText(elementId, btn) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text);
+      const originalText = btn.innerText;
+      btn.innerText = "Copied!";
+      setTimeout(() => { btn.innerText = originalText; }, 2000);
     }
 
     loadListings();
