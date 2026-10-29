@@ -20,6 +20,9 @@ export async function onRequestGet(context) {
       btcAddress: doc.fields?.btcAddress?.stringValue || "",
       description: doc.fields?.description?.stringValue || "",
       image: doc.fields?.image?.stringValue || null,
+      sold: doc.fields?.sold?.booleanValue || false,
+      txid: doc.fields?.txid?.stringValue || null,
+      buyerContact: doc.fields?.buyerContact?.stringValue || ""
     }));
 
     return new Response(JSON.stringify(items), { headers: { "Content-Type": "application/json" } });
@@ -33,6 +36,28 @@ export async function onRequestPost(context) {
   const projectId = context.env.FIREBASE_PROJECT_ID;
   const body = await context.request.json();
 
+  // If this request is marking an item as SOLD after payment detection
+  if (body.action === "mark_sold") {
+    const patchUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings/${body.id}?updateMask.fieldPaths=sold&updateMask.fieldPaths=txid&updateMask.fieldPaths=buyerContact&key=${apiKey}`;
+
+    const updateBody = {
+      fields: {
+        sold: { booleanValue: true },
+        txid: { stringValue: body.txid || "" },
+        buyerContact: { stringValue: body.buyerContact || "" }
+      }
+    };
+
+    const patchRes = await fetch(patchUrl, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updateBody)
+    });
+
+    return new Response(JSON.stringify({ success: patchRes.ok }), { headers: { "Content-Type": "application/json" } });
+  }
+
+  // Standard Create Listing
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
 
   const firestoreBody = {
@@ -43,6 +68,7 @@ export async function onRequestPost(context) {
       btcAddress: { stringValue: body.btcAddress || "" },
       description: { stringValue: body.description || "" },
       image: { stringValue: body.image || "" },
+      sold: { booleanValue: false },
       createdAt: { timestampValue: new Date().toISOString() }
     }
   };
