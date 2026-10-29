@@ -4,32 +4,13 @@
   <meta charset="UTF-8">
   <title>gemvi - Add Listing</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 0 15px;
-    }
-    header {
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 10px;
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-    }
-    input, textarea {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 6px;
-      margin-top: 4px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 6px 14px;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 15px; }
+    header { border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
+    label { display: block; margin-top: 12px; }
+    input, select { width: 100%; box-sizing: border-box; padding: 6px; margin-top: 4px; }
+    .price-row { display: flex; gap: 10px; }
+    .price-row div { flex: 1; }
+    button { margin-top: 20px; padding: 6px 14px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -39,32 +20,95 @@
     <a href="index.html">&larr; Back to listings</a>
   </header>
 
-  <h2>Add a new listing</h2>
+  <h2>Add a listing</h2>
 
   <form id="upload-form">
     <label for="title">Title</label>
-    <input type="text" id="title" required placeholder="What are you listing?">
+    <input type="text" id="title" required placeholder="Item name">
 
-    <label for="description">Description</label>
-    <textarea id="description" rows="4" required placeholder="Add details..."></textarea>
+    <div class="price-row">
+      <div>
+        <label for="price">Price</label>
+        <input type="number" id="price" step="any" required placeholder="0.00">
+      </div>
+      <div>
+        <label for="currency">Currency</label>
+        <select id="currency">
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="GBP">GBP (£)</option>
+          <option value="CAD">CAD ($)</option>
+          <option value="AUD">AUD ($)</option>
+        </select>
+      </div>
+    </div>
 
-    <button type="submit">Publish</button>
+    <label for="photo">Photo</label>
+    <input type="file" id="photo" accept="image/*">
+
+    <button type="submit" id="submit-btn">Publish</button>
   </form>
 
   <script>
-    document.getElementById('upload-form').addEventListener('submit', function(e) {
+    function processImage(file) {
+      return new Promise((resolve) => {
+        if (!file) return resolve(null);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxDim = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > height && width > maxDim) {
+              height *= maxDim / width;
+              width = maxDim;
+            } else if (height > maxDim) {
+              width *= maxDim / height;
+              height = maxDim;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('upload-form').addEventListener('submit', async function(e) {
       e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerText = "Publishing...";
 
       const title = document.getElementById('title').value;
-      const description = document.getElementById('description').value;
+      const price = document.getElementById('price').value;
+      const currency = document.getElementById('currency').value;
+      const file = document.getElementById('photo').files[0];
 
-      // Get existing items, add the new one first, then save
-      const items = JSON.parse(localStorage.getItem('gemvi_items') || '[]');
-      items.unshift({ title, description });
-      localStorage.setItem('gemvi_items', JSON.stringify(items));
+      try {
+        const imageBase64 = await processImage(file);
 
-      // Go back to the main page
-      window.location.href = 'index.html';
+        const res = await fetch('/api/listings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, price, currency, image: imageBase64 })
+        });
+
+        if (res.ok) {
+          window.location.href = 'index.html';
+        } else {
+          throw new Error('Failed to save listing');
+        }
+      } catch (err) {
+        alert("Upload failed: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "Publish";
+      }
     });
   </script>
 
