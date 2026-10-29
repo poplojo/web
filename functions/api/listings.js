@@ -4,22 +4,27 @@ export async function onRequestGet(context) {
 
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
 
-  const res = await fetch(url);
-  const data = await res.json();
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
 
-  if (!data.documents) {
-    return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json" } });
+    if (!data.documents) {
+      return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json" } });
+    }
+
+    const items = data.documents.map(doc => ({
+      id: doc.name.split('/').pop(),
+      title: doc.fields?.title?.stringValue || "Untitled Card",
+      price: doc.fields?.price?.stringValue || "0",
+      currency: doc.fields?.currency?.stringValue || "USD",
+      rate: doc.fields?.rate?.stringValue || "/day",
+      image: doc.fields?.image?.stringValue || null,
+    }));
+
+    return new Response(JSON.stringify(items), { headers: { "Content-Type": "application/json" } });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
   }
-
-  const items = data.documents.map(doc => ({
-    id: doc.name.split('/').pop(),
-    title: doc.fields?.title?.stringValue || "",
-    price: doc.fields?.price?.stringValue || "",
-    currency: doc.fields?.currency?.stringValue || "",
-    image: doc.fields?.image?.stringValue || null,
-  }));
-
-  return new Response(JSON.stringify(items), { headers: { "Content-Type": "application/json" } });
 }
 
 export async function onRequestPost(context) {
@@ -31,9 +36,10 @@ export async function onRequestPost(context) {
 
   const firestoreBody = {
     fields: {
-      title: { stringValue: body.title },
-      price: { stringValue: body.price },
-      currency: { stringValue: body.currency },
+      title: { stringValue: body.title || "" },
+      price: { stringValue: String(body.price || "0") },
+      currency: { stringValue: body.currency || "USD" },
+      rate: { stringValue: body.rate || "/day" },
       image: { stringValue: body.image || "" },
       createdAt: { timestampValue: new Date().toISOString() }
     }
