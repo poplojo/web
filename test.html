@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gemvi — Escrow & Payment Sandbox</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --btc: #f7931a;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: monospace; background: var(--bg); color: var(--text); padding: 30px 20px; line-height: 1.5; }
+    .container { max-width: 800px; margin: 0 auto; }
+    header { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 1.4rem; color: var(--btc); }
+    a { color: var(--text-muted); text-decoration: none; }
+    a:hover { color: #fff; }
+    .box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    .listing-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+    .listing-row:last-child { border-bottom: none; }
+    .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; }
+    .btn-sim { background: var(--btc); color: #fff; }
+    .btn-reset { background: var(--red); color: #fff; margin-left: 8px; }
+    .status-sold { color: var(--red); font-weight: bold; }
+    .status-active { color: var(--green); font-weight: bold; }
+    .log-box { background: #000; border: 1px solid var(--border); border-radius: 8px; padding: 14px; min-height: 140px; font-size: 0.85rem; color: #4ade80; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>🛠️ gemvi Escrow Sandbox</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Test purchases, verification, and database state without sending crypto</p>
+      </div>
+      <div>
+        <a href="index.html">&larr; Back to Marketplace</a>
+      </div>
+    </header>
+
+    <div class="box">
+      <h3 style="margin-bottom: 12px;">Active Marketplace Cards</h3>
+      <div id="listings-list">Loading cards...</div>
+    </div>
+
+    <div class="box">
+      <h3 style="margin-bottom: 8px;">Simulation Activity Logs</h3>
+      <div class="log-box" id="log-terminal">> Sandbox initialized. Ready for test events.</div>
+    </div>
+  </div>
+
+  <script>
+    let listings = [];
+
+    function log(msg) {
+      const term = document.getElementById('log-terminal');
+      term.innerHTML += `<br>> [${new Date().toLocaleTimeString()}] ${msg}`;
+      term.scrollTop = term.scrollHeight;
+    }
+
+    async function loadTestCards() {
+      const listContainer = document.getElementById('listings-list');
+      try {
+        const res = await fetch('/api/listings');
+        const data = await res.json();
+        listings = data.listings || [];
+
+        if (listings.length === 0) {
+          listContainer.innerHTML = '<p style="color: var(--text-muted)">No cards in database. Create one on upload.html first!</p>';
+          return;
+        }
+
+        listContainer.innerHTML = '';
+        listings.forEach(card => {
+          const row = document.createElement('div');
+          row.className = 'listing-row';
+
+          const statusText = card.sold 
+            ? `<span class="status-sold">SOLD (TxID: ${card.txid ? card.txid.substring(0, 10) + '...' : 'test'})</span>` 
+            : `<span class="status-active">AVAILABLE FOR SALE</span>`;
+
+          const actionButtons = card.sold
+            ? `<button class="btn btn-reset" onclick="resetCard('${card.id}')">Reset to Available</button>`
+            : `<button class="btn btn-sim" onclick="simulateBuy('${card.id}', '${card.title}', ${card.price})">⚡ Simulate 0-Crypto Purchase</button>`;
+
+          row.innerHTML = `
+            <div>
+              <strong>${card.title}</strong> — ${card.currency} ${card.price}<br>
+              <span style="font-size: 0.8rem;">Status: ${statusText}</span>
+            </div>
+            <div>
+              ${actionButtons}
+            </div>
+          `;
+          listContainer.appendChild(row);
+        });
+
+      } catch (err) {
+        listContainer.innerHTML = 'Error loading cards.';
+        log('Error: ' + err.message);
+      }
+    }
+
+    // 1. Simulates the whole blockchain buy flow without real crypto
+    async function simulateBuy(id, title, price) {
+      log(`Initiating mock purchase for: "${title}" ($${price})...`);
+      log(`Generating mock Bitcoin TxID...`);
+      
+      const mockTxid = "test_" + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+      log(`Mock TxID generated: ${mockTxid}`);
+      log(`Submitting verification payload to Cloudflare backend...`);
+
+      try {
+        const res = await fetch('/api/listings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'verify_and_buy',
+            listingId: id,
+            txid: mockTxid,
+            expectedSats: 50000,
+            buyerContact: 'test_buyer@gmail.com (Sandbox)',
+            isTest: true
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          log(`✅ SUCCESS: Backend verified transaction & marked "${title}" as SOLD in Firestore!`);
+          loadTestCards();
+        } else {
+          log(`❌ Verification failed: ${data.message}`);
+        }
+      } catch (err) {
+        log(`❌ Network error: ${err.message}`);
+      }
+    }
+
+    // 2. Un-marks a card as sold so you can test again
+    async function resetCard(id) {
+      log(`Resetting card ID ${id} back to AVAILABLE...`);
+      try {
+        const res = await fetch('/api/listings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'reset_card', id: id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          log(`✅ Card reset to available.`);
+          loadTestCards();
+        }
+      } catch(e) {
+        log(`❌ Reset failed: ${e.message}`);
+      }
+    }
+
+    loadTestCards();
+  </script>
+</body>
+</html>
