@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>gemvi - Add Listing</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 15px;
+    }
+    header {
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+    }
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px;
+      margin-top: 4px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 6px 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>gemvi</h1>
+    <a href="index.html">&larr; Back to listings</a>
+  </header>
+
+  <h2>Add a new listing</h2>
+
+  <form id="upload-form">
+    <label for="title">Title</label>
+    <input type="text" id="title" required placeholder="What are you listing?">
+
+    <label for="description">Description</label>
+    <textarea id="description" rows="4" required placeholder="Add details..."></textarea>
+
+    <button type="submit">Publish</button>
+  </form>
+
+  <script>
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+
+      // Get existing items, add the new one first, then save
+      const items = JSON.parse(localStorage.getItem('gemvi_items') || '[]');
+      items.unshift({ title, description });
+      localStorage.setItem('gemvi_items', JSON.stringify(items));
+
+      // Go back to the main page
+      window.location.href = 'index.html';
+    });
+  </script>
+
+</body>
+</html>
