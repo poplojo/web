@@ -206,7 +206,7 @@
       font-size: 1rem;
     }
 
-    /* Modal Overlay */
+    /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -303,22 +303,7 @@
       line-height: 1.6;
       white-space: pre-wrap;
       color: #334155;
-      margin-bottom: 16px;
-    }
-
-    .modal-contact-box {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 8px;
-      padding: 12px 14px;
       margin-bottom: 20px;
-      font-size: 0.95rem;
-    }
-
-    .modal-contact-box strong {
-      display: block;
-      color: #1e40af;
-      margin-bottom: 4px;
     }
 
     @media (max-width: 600px) {
@@ -377,8 +362,6 @@
 
         <div class="section-label">Card Details & Description</div>
         <div class="modal-desc-box" id="modal-desc"></div>
-
-        <div class="modal-contact-box" id="modal-contact-container"></div>
 
         <button class="btn-buy" style="padding: 12px; font-size: 1rem;" onclick="closeModal()">Close</button>
       </div>
@@ -451,15 +434,6 @@
         imgContainer.style.display = 'flex';
       } else {
         imgContainer.style.display = 'none';
-      }
-
-      const contactBox = document.getElementById('modal-contact-container');
-      if (card.contact) {
-        contactBox.innerHTML = `<strong>How to Buy:</strong> Contact seller at: <b>${card.contact}</b>`;
-        contactBox.style.display = 'block';
-      } else {
-        contactBox.innerHTML = `<strong>How to Buy:</strong> Inquire directly with the seller to complete payment and shipping.`;
-        contactBox.style.display = 'block';
       }
 
       document.getElementById('card-modal').classList.add('active');
