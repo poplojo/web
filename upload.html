@@ -178,11 +178,8 @@
         </div>
       </div>
 
-      <label for="contact">Seller Contact (Email or Username)</label>
-      <input type="text" id="contact" placeholder="e.g. email@domain.com or @discord_tag">
-
-      <label for="description">Full Description</label>
-      <textarea id="description" rows="4" placeholder="Condition details (e.g. Near Mint, PSA 9), shipping options, authenticity..."></textarea>
+      <label for="description">Description</label>
+      <textarea id="description" rows="4" placeholder="Condition details (e.g. Near Mint, PSA 9), set details, notes..."></textarea>
 
       <label for="photo">Card Photo</label>
       <div class="image-dropzone" onclick="document.getElementById('photo').click()">
@@ -255,7 +252,6 @@
       const title = document.getElementById('title').value;
       const price = document.getElementById('price').value;
       const currency = document.getElementById('currency').value;
-      const contact = document.getElementById('contact').value;
       const description = document.getElementById('description').value;
       const file = photoInput.files[0];
 
@@ -265,7 +261,7 @@
         const res = await fetch('/api/listings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, price, currency, contact, description, image: imageBase64 })
+          body: JSON.stringify({ title, price, currency, description, image: imageBase64 })
         });
 
         if (res.ok) {
