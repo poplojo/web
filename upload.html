@@ -2,54 +2,227 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>gemvi - Add Listing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gemvi — Lend Your Card</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 15px; }
-    header { border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
-    label { display: block; margin-top: 12px; }
-    input, select { width: 100%; box-sizing: border-box; padding: 6px; margin-top: 4px; }
-    .price-row { display: flex; gap: 10px; }
-    .price-row div { flex: 1; }
-    button { margin-top: 20px; padding: 6px 14px; cursor: pointer; }
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 20px 15px 60px;
+    }
+
+    .form-box {
+      max-width: 500px;
+      margin: 30px auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    header a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    header a:hover {
+      color: var(--text);
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 6px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* Image Upload Dropzone */
+    .image-dropzone {
+      margin-top: 6px;
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      background: #fafafa;
+    }
+
+    .image-dropzone:hover {
+      border-color: var(--accent);
+      background: #f1f5f9;
+    }
+
+    .preview-box {
+      margin-top: 10px;
+      display: none;
+      width: 100%;
+      max-height: 220px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>gemvi</h1>
-    <a href="index.html">&larr; Back to listings</a>
-  </header>
+  <div class="form-box">
+    <header>
+      <h1>Lend a Card</h1>
+      <a href="index.html">&larr; Back</a>
+    </header>
 
-  <h2>Add a listing</h2>
+    <form id="lend-form">
+      <label for="title">Card Name</label>
+      <input type="text" id="title" required placeholder="e.g. Costco Membership / Black Lotus MTG">
 
-  <form id="upload-form">
-    <label for="title">Title</label>
-    <input type="text" id="title" required placeholder="Item name">
-
-    <div class="price-row">
-      <div>
-        <label for="price">Price</label>
-        <input type="number" id="price" step="any" required placeholder="0.00">
+      <div class="row-3">
+        <div>
+          <label for="price">Price</label>
+          <input type="number" id="price" step="any" required placeholder="10">
+        </div>
+        <div>
+          <label for="currency">Currency</label>
+          <select id="currency">
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="CAD">CAD ($)</option>
+          </select>
+        </div>
+        <div>
+          <label for="rate">Period</label>
+          <select id="rate">
+            <option value="/day">/day</option>
+            <option value="/week">/week</option>
+            <option value="/month">/month</option>
+            <option value="flat">flat</option>
+          </select>
+        </div>
       </div>
-      <div>
-        <label for="currency">Currency</label>
-        <select id="currency">
-          <option value="USD">USD ($)</option>
-          <option value="EUR">EUR (€)</option>
-          <option value="GBP">GBP (£)</option>
-          <option value="CAD">CAD ($)</option>
-          <option value="AUD">AUD ($)</option>
-        </select>
+
+      <label for="photo">Card Photo</label>
+      <div class="image-dropzone" onclick="document.getElementById('photo').click()">
+        <span id="photo-label">📷 Tap to select photo</span>
+        <input type="file" id="photo" accept="image/*" style="display: none;">
       </div>
-    </div>
 
-    <label for="photo">Photo</label>
-    <input type="file" id="photo" accept="image/*">
+      <div class="preview-box" id="preview-box">
+        <img id="preview-img" src="" alt="Preview">
+      </div>
 
-    <button type="submit" id="submit-btn">Publish</button>
-  </form>
+      <button type="submit" id="submit-btn">Publish Card Listing</button>
+    </form>
+  </div>
 
   <script>
+    const photoInput = document.getElementById('photo');
+    const previewBox = document.getElementById('preview-box');
+    const previewImg = document.getElementById('preview-img');
+    const photoLabel = document.getElementById('photo-label');
+
+    // Live preview
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files[0];
+      if (file) {
+        photoLabel.innerText = "Selected: " + file.name;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          previewBox.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Resize image client-side to stay fast & lightweight
     function processImage(file) {
       return new Promise((resolve) => {
         if (!file) return resolve(null);
@@ -71,7 +244,7 @@
             canvas.width = width;
             canvas.height = height;
             canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
           };
           img.src = e.target.result;
         };
@@ -79,16 +252,17 @@
       });
     }
 
-    document.getElementById('upload-form').addEventListener('submit', async function(e) {
+    document.getElementById('lend-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
-      btn.innerText = "Publishing...";
+      btn.innerText = "Publishing card...";
 
       const title = document.getElementById('title').value;
       const price = document.getElementById('price').value;
       const currency = document.getElementById('currency').value;
-      const file = document.getElementById('photo').files[0];
+      const rate = document.getElementById('rate').value;
+      const file = photoInput.files[0];
 
       try {
         const imageBase64 = await processImage(file);
@@ -96,18 +270,18 @@
         const res = await fetch('/api/listings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, price, currency, image: imageBase64 })
+          body: JSON.stringify({ title, price, currency, rate, image: imageBase64 })
         });
 
         if (res.ok) {
           window.location.href = 'index.html';
         } else {
-          throw new Error('Failed to save listing');
+          throw new Error('Upload error');
         }
       } catch (err) {
-        alert("Upload failed: " + err.message);
+        alert("Failed to publish: " + err.message);
         btn.disabled = false;
-        btn.innerText = "Publish";
+        btn.innerText = "Publish Card Listing";
       }
     });
   </script>
