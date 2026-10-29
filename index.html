@@ -4,30 +4,12 @@
   <meta charset="UTF-8">
   <title>gemvi</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 0 15px;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 10px;
-    }
-    .listing {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-top: 15px;
-    }
-    .listing h3 {
-      margin: 0 0 6px 0;
-    }
-    .listing p {
-      margin: 0;
-    }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 15px; }
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+    .listing { border: 1px solid #ccc; padding: 10px; margin-top: 15px; }
+    .listing img { width: 100%; max-height: 350px; object-fit: cover; display: block; margin-bottom: 8px; }
+    .listing h3 { margin: 0 0 4px 0; }
+    .price { font-weight: bold; color: #333; }
   </style>
 </head>
 <body>
@@ -38,26 +20,39 @@
   </header>
 
   <main id="listings-list">
-    <!-- Listings load here -->
+    <p>Loading listings...</p>
   </main>
 
   <script>
-    const listContainer = document.getElementById('listings-list');
-    const items = JSON.parse(localStorage.getItem('gemvi_items') || '[]');
+    async function loadListings() {
+      const listContainer = document.getElementById('listings-list');
+      try {
+        const res = await fetch('/api/listings');
+        const items = await res.json();
 
-    if (items.length === 0) {
-      listContainer.innerHTML = '<p>No listings yet.</p>';
-    } else {
-      items.forEach(item => {
-        const box = document.createElement('div');
-        box.className = 'listing';
-        box.innerHTML = `
-          <h3>${item.title}</h3>
-          <p>${item.description}</p>
-        `;
-        listContainer.appendChild(box);
-      });
+        listContainer.innerHTML = '';
+        if (items.length === 0) {
+          listContainer.innerHTML = '<p>No listings yet.</p>';
+          return;
+        }
+
+        items.forEach(item => {
+          const box = document.createElement('div');
+          box.className = 'listing';
+          const imgHtml = item.image ? `<img src="${item.image}" alt="${item.title}">` : '';
+          box.innerHTML = `
+            ${imgHtml}
+            <h3>${item.title}</h3>
+            <div class="price">${item.currency} ${item.price}</div>
+          `;
+          listContainer.appendChild(box);
+        });
+      } catch (e) {
+        listContainer.innerHTML = '<p>Error loading listings.</p>';
+      }
     }
+
+    loadListings();
   </script>
 
 </body>
