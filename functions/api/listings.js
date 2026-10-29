@@ -1,7 +1,7 @@
 export async function onRequestGet(context) {
   const apiKey = context.env.FIREBASE_API_KEY;
   const projectId = context.env.FIREBASE_PROJECT_ID;
-  const masterBtc = context.env.MASTER_BTC_ADDRESS || "";
+  const masterBtc = context.env.MASTER_BTC_ADDRESS || "bc1q_test_middleman_vault";
 
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
 
@@ -22,7 +22,8 @@ export async function onRequestGet(context) {
       description: doc.fields?.description?.stringValue || "",
       image: doc.fields?.image?.stringValue || null,
       sold: doc.fields?.sold?.booleanValue || false,
-      txid: doc.fields?.txid?.stringValue || null
+      txid: doc.fields?.txid?.stringValue || null,
+      buyerContact: doc.fields?.buyerContact?.stringValue || ""
     }));
 
     return new Response(JSON.stringify({ listings: items, masterBtc }), { headers: { "Content-Type": "application/json" } });
@@ -37,38 +38,59 @@ export async function onRequestPost(context) {
   const masterBtc = context.env.MASTER_BTC_ADDRESS;
   const body = await context.request.json();
 
-  // 1. REAL ON-CHAIN PAYMENT VERIFICATION
-  if (body.action === "verify_and_buy") {
-    const { txid, listingId, expectedSats, buyerContact } = body;
+  // RESET CARD (For testing purposes)
+  if (body.action === "reset_card") {
+    const patchUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings/${body.id}?updateMask.fieldPaths=sold&updateMask.fieldPaths=txid&updateMask.fieldPaths=buyerContact&key=${apiKey}`;
+    await fetch(patchUrl, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fields: {
+          sold: { booleanValue: false },
+          txid: { stringValue: "" },
+          buyerContact: { stringValue: "" }
+        }
+      })
+    });
+    return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+  }
 
-    if (!txid || !listingId || !expectedSats) {
-      return new Response(JSON.stringify({ success: false, message: "Missing verification parameters" }), { status: 400 });
+  // PAYMENT VERIFICATION (Live or Sandbox Test)
+  if (body.action === "verify_and_buy") {
+    const { txid, listingId, expectedSats, buyerContact, isTest } = body;
+
+    // SANDBOX SIMULATION BYPASS
+    if (isTest || (txid && txid.startsWith("test_"))) {
+      const patchUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings/${listingId}?updateMask.fieldPaths=sold&updateMask.fieldPaths=txid&updateMask.fieldPaths=buyerContact&key=${apiKey}`;
+      await fetch(patchUrl, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: {
+            sold: { booleanValue: true },
+            txid: { stringValue: txid || "test_simulated_txid" },
+            buyerContact: { stringValue: buyerContact || "Test Buyer" }
+          }
+        })
+      });
+      return new Response(JSON.stringify({ success: true, isTest: true }), { headers: { "Content-Type": "application/json" } });
     }
 
+    // REAL BITCOIN NETWORK CHECK
     try {
-      // Query the real Bitcoin network for this TXID
       const mempoolRes = await fetch(`https://mempool.space/api/tx/${txid.trim()}`);
       if (!mempoolRes.ok) {
-        return new Response(JSON.stringify({ success: false, message: "Transaction not found on the Bitcoin network yet." }), { status: 400 });
+        return new Response(JSON.stringify({ success: false, message: "Transaction not found on the Bitcoin network." }), { status: 400 });
       }
 
       const tx = await mempoolRes.json();
-
-      // Check: Did one of the outputs send >= expectedSats to YOUR master address?
-      const validPayment = tx.vout.find(output => {
-        return output.scriptpubkey_address === masterBtc && output.value >= (expectedSats - 100); // 100 sat buffer for rounding
-      });
+      const validPayment = tx.vout.find(output => output.scriptpubkey_address === masterBtc && output.value >= (expectedSats - 100));
 
       if (!validPayment) {
-        return new Response(JSON.stringify({ 
-          success: false, 
-          message: "Transaction found, but it did not deliver the required satoshis to the platform escrow wallet." 
-        }), { status: 400 });
+        return new Response(JSON.stringify({ success: false, message: "Sats did not reach platform vault." }), { status: 400 });
       }
 
-      // Mark the listing as SOLD in Firestore
       const patchUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings/${listingId}?updateMask.fieldPaths=sold&updateMask.fieldPaths=txid&updateMask.fieldPaths=buyerContact&key=${apiKey}`;
-
       await fetch(patchUrl, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -82,15 +104,13 @@ export async function onRequestPost(context) {
       });
 
       return new Response(JSON.stringify({ success: true, txid }), { headers: { "Content-Type": "application/json" } });
-
     } catch (e) {
-      return new Response(JSON.stringify({ success: false, message: "Verification failed: " + e.message }), { status: 500 });
+      return new Response(JSON.stringify({ success: false, message: e.message }), { status: 500 });
     }
   }
 
-  // 2. CREATE NEW CARD LISTING
+  // CREATE NEW CARD
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
-
   const firestoreBody = {
     fields: {
       title: { stringValue: body.title || "" },
