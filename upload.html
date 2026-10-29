@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>gemvi — Lend Your Card</title>
+  <title>gemvi — Sell a Card</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -73,28 +73,28 @@
       letter-spacing: 0.5px;
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 8px;
       margin-top: 6px;
       font-size: 0.95rem;
+      font-family: inherit;
       background: #fff;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--accent);
     }
 
-    .row-3 {
+    .row-2 {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
     }
 
-    /* Image Upload Dropzone */
     .image-dropzone {
       margin-top: 6px;
       border: 2px dashed var(--border);
@@ -102,7 +102,6 @@
       padding: 20px;
       text-align: center;
       cursor: pointer;
-      position: relative;
       background: #fafafa;
     }
 
@@ -155,18 +154,18 @@
 
   <div class="form-box">
     <header>
-      <h1>Lend a Card</h1>
+      <h1>Sell a Card</h1>
       <a href="index.html">&larr; Back</a>
     </header>
 
-    <form id="lend-form">
+    <form id="sell-form">
       <label for="title">Card Name</label>
-      <input type="text" id="title" required placeholder="e.g. Costco Membership / Black Lotus MTG">
+      <input type="text" id="title" required placeholder="e.g. Charizard Base Set Holo">
 
-      <div class="row-3">
+      <div class="row-2">
         <div>
           <label for="price">Price</label>
-          <input type="number" id="price" step="any" required placeholder="10">
+          <input type="number" id="price" step="any" required placeholder="50.00">
         </div>
         <div>
           <label for="currency">Currency</label>
@@ -177,20 +176,14 @@
             <option value="CAD">CAD ($)</option>
           </select>
         </div>
-        <div>
-          <label for="rate">Period</label>
-          <select id="rate">
-            <option value="/day">/day</option>
-            <option value="/week">/week</option>
-            <option value="/month">/month</option>
-            <option value="flat">flat</option>
-          </select>
-        </div>
       </div>
+
+      <label for="description">Description</label>
+      <textarea id="description" rows="3" placeholder="Condition (e.g. Mint, PSA 9), shipping info, card details..."></textarea>
 
       <label for="photo">Card Photo</label>
       <div class="image-dropzone" onclick="document.getElementById('photo').click()">
-        <span id="photo-label">📷 Tap to select photo</span>
+        <span id="photo-label">📷 Tap to upload card photo</span>
         <input type="file" id="photo" accept="image/*" style="display: none;">
       </div>
 
@@ -198,7 +191,7 @@
         <img id="preview-img" src="" alt="Preview">
       </div>
 
-      <button type="submit" id="submit-btn">Publish Card Listing</button>
+      <button type="submit" id="submit-btn">Publish Card for Sale</button>
     </form>
   </div>
 
@@ -208,7 +201,6 @@
     const previewImg = document.getElementById('preview-img');
     const photoLabel = document.getElementById('photo-label');
 
-    // Live preview
     photoInput.addEventListener('change', () => {
       const file = photoInput.files[0];
       if (file) {
@@ -222,7 +214,6 @@
       }
     });
 
-    // Resize image client-side to stay fast & lightweight
     function processImage(file) {
       return new Promise((resolve) => {
         if (!file) return resolve(null);
@@ -252,7 +243,7 @@
       });
     }
 
-    document.getElementById('lend-form').addEventListener('submit', async function(e) {
+    document.getElementById('sell-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
@@ -261,7 +252,7 @@
       const title = document.getElementById('title').value;
       const price = document.getElementById('price').value;
       const currency = document.getElementById('currency').value;
-      const rate = document.getElementById('rate').value;
+      const description = document.getElementById('description').value;
       const file = photoInput.files[0];
 
       try {
@@ -270,7 +261,7 @@
         const res = await fetch('/api/listings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, price, currency, rate, image: imageBase64 })
+          body: JSON.stringify({ title, price, currency, description, image: imageBase64 })
         });
 
         if (res.ok) {
@@ -281,7 +272,7 @@
       } catch (err) {
         alert("Failed to publish: " + err.message);
         btn.disabled = false;
-        btn.innerText = "Publish Card Listing";
+        btn.innerText = "Publish Card for Sale";
       }
     });
   </script>
