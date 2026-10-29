@@ -17,6 +17,7 @@ export async function onRequestGet(context) {
       title: doc.fields?.title?.stringValue || "Untitled Card",
       price: doc.fields?.price?.stringValue || "0",
       currency: doc.fields?.currency?.stringValue || "USD",
+      btcAddress: doc.fields?.btcAddress?.stringValue || "",
       description: doc.fields?.description?.stringValue || "",
       image: doc.fields?.image?.stringValue || null,
     }));
@@ -39,6 +40,7 @@ export async function onRequestPost(context) {
       title: { stringValue: body.title || "" },
       price: { stringValue: String(body.price || "0") },
       currency: { stringValue: body.currency || "USD" },
+      btcAddress: { stringValue: body.btcAddress || "" },
       description: { stringValue: body.description || "" },
       image: { stringValue: body.image || "" },
       createdAt: { timestampValue: new Date().toISOString() }
