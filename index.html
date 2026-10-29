@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>gemvi — Card Marketplace</title>
+  <title>gemvi — Real Bitcoin Card Marketplace</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -11,11 +11,9 @@
       --border: #e2e8f0;
       --text: #0f172a;
       --text-muted: #64748b;
-      --accent: #2563eb;
       --btc: #f7931a;
       --btc-dark: #c26e07;
-      --badge-bg: #fff7ed;
-      --badge-text: #c2410c;
+      --green: #16a34a;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -85,11 +83,17 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       cursor: pointer;
+      position: relative;
     }
 
     .card-item:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-item.is-sold {
+      opacity: 0.65;
+      filter: grayscale(40%);
     }
 
     .card-image-box {
@@ -106,20 +110,20 @@
     .card-image-box img { width: 100%; height: 100%; object-fit: cover; }
     .card-image-box .placeholder-icon { font-size: 2.5rem; color: var(--text-muted); }
 
-    .badge-btc {
+    .badge-status {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: var(--badge-bg);
-      color: var(--badge-text);
       font-size: 0.72rem;
       font-weight: 800;
       padding: 3px 8px;
       border-radius: 20px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      border: 1px solid #ffedd5;
     }
+
+    .badge-btc { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+    .badge-sold { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 
     .card-body {
       padding: 14px 16px;
@@ -144,7 +148,6 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      word-break: break-word;
     }
 
     .price-amount {
@@ -165,21 +168,14 @@
       font-size: 0.9rem;
       cursor: pointer;
       text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .btn-buy:hover { background: var(--btc-dark); }
-
-    .status-msg {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-      font-size: 1rem;
     }
 
-    /* Modal / Bitcoin Checkout */
+    .btn-buy:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    /* Modal / Bitcoin Gateway */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -221,40 +217,52 @@
       z-index: 10;
     }
 
-    .modal-img-wrap {
-      width: 100%;
-      max-height: 240px;
-      background: #0f172a;
+    .modal-content { padding: 24px; }
+
+    /* Live Blockchain Pulse Banner */
+    .live-pulse-bar {
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      gap: 8px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 16px;
     }
-    .modal-img-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
-    .modal-content { padding: 20px 24px 24px; }
-    .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background: #2563eb;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.4; }
+      100% { transform: scale(0.9); opacity: 1; }
+    }
 
     .btc-checkout-card {
       background: #fff7ed;
       border: 1px solid #fed7aa;
       border-radius: 12px;
       padding: 16px;
-      margin: 16px 0;
       text-align: center;
+      margin-bottom: 16px;
     }
 
     .btc-price-tag {
-      font-size: 1.5rem;
-      font-weight: 800;
+      font-size: 1.6rem;
+      font-weight: 900;
       color: #c2410c;
       font-family: monospace;
-    }
-
-    .fiat-sub {
-      font-size: 0.85rem;
-      color: #9a3412;
-      margin-bottom: 12px;
     }
 
     .qr-container {
@@ -274,7 +282,7 @@
       padding: 8px 10px;
       border-radius: 6px;
       font-family: monospace;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       word-break: break-all;
       margin-top: 8px;
       display: flex;
@@ -294,16 +302,38 @@
       flex-shrink: 0;
     }
 
-    .modal-desc-box {
-      background: #f8fafc;
-      border: 1px solid var(--border);
+    .btn-launch-wallet {
+      display: block;
+      width: 100%;
+      text-decoration: none;
+      background: #0f172a;
+      color: #fff;
+      padding: 10px;
       border-radius: 8px;
-      padding: 12px;
+      font-weight: 700;
       font-size: 0.9rem;
-      color: #475569;
-      line-height: 1.5;
-      margin-bottom: 16px;
-      white-space: pre-wrap;
+      margin: 12px 0;
+      text-align: center;
+    }
+
+    /* Success Paid Screen */
+    .paid-success-screen {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .paid-success-screen .check-icon {
+      font-size: 3.5rem;
+      color: var(--green);
+    }
+
+    .tx-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--btc-dark);
+      word-break: break-all;
     }
 
     @media (max-width: 600px) {
@@ -311,10 +341,6 @@
       .card-body { padding: 10px; }
       .card-title { font-size: 0.95rem; }
       .price-amount { font-size: 1.1rem; }
-    }
-
-    @media (max-width: 380px) {
-      .cards-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -324,7 +350,7 @@
     <div class="nav-container">
       <div class="brand">
         <h1>gemvi</h1>
-        <p>Bitcoin Card Marketplace</p>
+        <p>Live Bitcoin Card Marketplace</p>
       </div>
       <a href="upload.html" class="btn-sell">+ Sell a Card</a>
     </div>
@@ -332,45 +358,62 @@
 
   <main>
     <div class="hero-text">
-      <h2>Cards for Sale (Pay with BTC)</h2>
+      <h2>Cards for Sale (Live Blockchain Settlement)</h2>
     </div>
 
     <div id="listings-container" class="cards-grid">
-      <div class="status-msg">Loading listings...</div>
+      <div style="text-align: center; padding: 40px; color: #64748b;">Loading listings...</div>
     </div>
   </main>
 
-  <!-- Bitcoin Checkout Modal -->
+  <!-- Live Bitcoin Payment Modal -->
   <div class="modal-overlay" id="card-modal" onclick="closeModalOnBg(event)">
     <div class="modal-box">
       <button class="modal-close" onclick="closeModal()">×</button>
-      <div class="modal-img-wrap" id="modal-img-container"></div>
       
       <div class="modal-content">
-        <h3 class="modal-title" id="modal-title"></h3>
-        
-        <!-- Live Bitcoin Payment Box -->
-        <div class="btc-checkout-card">
-          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #9a3412;">Send Exactly</div>
-          <div class="btc-price-tag" id="modal-btc-amount">Calculating...</div>
-          <div class="fiat-sub" id="modal-fiat-amount"></div>
-
-          <!-- QR Code generated automatically -->
-          <div class="qr-container">
-            <img id="modal-qr-code" src="" alt="Bitcoin QR Code">
+        <!-- Live Payment Screen -->
+        <div id="checkout-view">
+          <div class="live-pulse-bar">
+            <span class="pulse-dot"></span>
+            <span id="blockchain-status-text">Scanning Bitcoin Mempool...</span>
           </div>
 
-          <div style="font-size: 0.75rem; color: #9a3412; font-weight: 600;">Seller's Bitcoin Wallet:</div>
-          <div class="address-field">
-            <span id="modal-btc-address">...</span>
-            <button class="btn-copy" id="btn-copy-addr" onclick="copyText('modal-btc-address', this)">Copy</button>
+          <h3 id="modal-title" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;"></h3>
+          
+          <div class="btc-checkout-card">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #9a3412;">Exact Amount to Pay</div>
+            <div class="btc-price-tag" id="modal-btc-amount">0.00000000 BTC</div>
+            <div style="font-size: 0.85rem; color: #9a3412;" id="modal-fiat-amount"></div>
+
+            <div class="qr-container">
+              <img id="modal-qr-code" src="" alt="Bitcoin QR">
+            </div>
+
+            <!-- Deep link to open native wallet app -->
+            <a href="#" id="modal-wallet-link" class="btn-launch-wallet">📱 Open in Bitcoin Wallet App</a>
+
+            <div style="font-size: 0.75rem; color: #9a3412; font-weight: 600; text-align: left;">Send to Address:</div>
+            <div class="address-field">
+              <span id="modal-btc-address">...</span>
+              <button class="btn-copy" onclick="copyText('modal-btc-address', this)">Copy</button>
+            </div>
           </div>
+
+          <!-- Shipping/Contact box so seller knows who bought it -->
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 4px;">YOUR DELIVERY / CONTACT INFO (EMAIL OR ADDRESS):</label>
+          <input type="text" id="buyer-info" placeholder="e.g. buyer@gmail.com or 123 Main St, City" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px; font-size: 0.9rem;">
         </div>
 
-        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Card Description</div>
-        <div class="modal-desc-box" id="modal-desc"></div>
+        <!-- Confirmed Screen (Appears instantly upon transaction detection) -->
+        <div id="confirmed-view" class="paid-success-screen">
+          <div class="check-icon">✓</div>
+          <h2 style="font-weight: 800; margin-top: 10px;">Payment Verified!</h2>
+          <p style="color: #475569; font-size: 0.95rem; margin-top: 6px;">Your transaction was detected on the Bitcoin blockchain. This card is now marked as <b>SOLD</b> to you.</p>
+          <div id="tx-receipt-box" style="margin-top: 15px;"></div>
+          <button class="btn-buy" style="margin-top: 20px; background: #0f172a;" onclick="closeModal()">Done</button>
+        </div>
 
-        <button class="btn-buy" style="padding: 12px; width: 100%;" onclick="closeModal()">Close</button>
       </div>
     </div>
   </div>
@@ -378,15 +421,15 @@
   <script>
     let cardList = [];
     let btcRates = null;
+    let pollInterval = null;
+    let initialTxCount = 0;
 
-    // Fetch live Bitcoin exchange rate from Coinbase
     async function fetchBtcRates() {
       try {
         const res = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
         const data = await res.json();
         btcRates = data.data.rates;
-      } catch (err) {
-        console.warn('Could not fetch live BTC rates, using fallback.', err);
+      } catch (e) {
         btcRates = { USD: 65000, EUR: 60000, GBP: 51000, CAD: 90000 };
       }
     }
@@ -398,26 +441,33 @@
       try {
         const res = await fetch('/api/listings');
         cardList = await res.json();
-
         container.innerHTML = '';
 
         if (!cardList || cardList.length === 0) {
-          container.innerHTML = '<div class="status-msg">No cards for sale right now.</div>';
+          container.innerHTML = '<div style="text-align:center; padding: 40px; color:#64748b;">No cards listed.</div>';
           return;
         }
 
         cardList.forEach((card, index) => {
           const cardDiv = document.createElement('div');
-          cardDiv.className = 'card-item';
-          cardDiv.onclick = () => openModal(index);
+          cardDiv.className = `card-item ${card.sold ? 'is-sold' : ''}`;
+          if (!card.sold) cardDiv.onclick = () => openModal(index);
 
           const imageSection = card.image 
             ? `<img src="${card.image}" alt="${card.title}">` 
             : `<div class="placeholder-icon">🎴</div>`;
 
+          const statusBadge = card.sold
+            ? `<span class="badge-status badge-sold">SOLD</span>`
+            : `<span class="badge-status badge-btc">₿ Bitcoin</span>`;
+
+          const buyButton = card.sold
+            ? `<button class="btn-buy" disabled>Sold Out</button>`
+            : `<button class="btn-buy" onclick="event.stopPropagation(); openModal(${index})">⚡ Buy with Bitcoin</button>`;
+
           cardDiv.innerHTML = `
             <div class="card-image-box">
-              <span class="badge-btc">₿ Bitcoin</span>
+              ${statusBadge}
               ${imageSection}
             </div>
             <div class="card-body">
@@ -426,33 +476,26 @@
                 <p class="card-desc">${card.description || 'No description provided.'}</p>
                 <div class="price-amount">${card.currency} ${card.price}</div>
               </div>
-              <button class="btn-buy" onclick="event.stopPropagation(); openModal(${index})">
-                ₿ Buy with Bitcoin
-              </button>
+              ${buyButton}
             </div>
           `;
 
           container.appendChild(cardDiv);
         });
       } catch (err) {
-        container.innerHTML = '<div class="status-msg">Could not load cards.</div>';
+        container.innerHTML = '<div style="text-align:center; padding: 40px;">Error loading cards.</div>';
       }
     }
 
-    function openModal(index) {
+    // Opens checkout & starts live blockchain monitoring
+    async function openModal(index) {
       const card = cardList[index];
-      if (!card) return;
+      if (!card || card.sold) return;
+
+      document.getElementById('checkout-view').style.display = 'block';
+      document.getElementById('confirmed-view').style.display = 'none';
 
       document.getElementById('modal-title').innerText = card.title;
-      document.getElementById('modal-desc').innerText = card.description || 'No description provided for this card.';
-
-      const imgContainer = document.getElementById('modal-img-container');
-      if (card.image) {
-        imgContainer.innerHTML = `<img src="${card.image}" alt="${card.title}">`;
-        imgContainer.style.display = 'flex';
-      } else {
-        imgContainer.style.display = 'none';
-      }
 
       // Convert Fiat to BTC
       const fiatAmount = parseFloat(card.price) || 0;
@@ -461,19 +504,91 @@
       const btcAmount = (fiatAmount / rate).toFixed(8);
 
       document.getElementById('modal-btc-amount').innerText = `₿ ${btcAmount} BTC`;
-      document.getElementById('modal-fiat-amount').innerText = `≈ ${card.currency} ${card.price} at live rate`;
+      document.getElementById('modal-fiat-amount').innerText = `≈ ${card.currency} ${card.price}`;
 
-      const btcAddress = card.btcAddress || 'No Bitcoin address provided';
+      const btcAddress = card.btcAddress;
       document.getElementById('modal-btc-address').innerText = btcAddress;
 
-      // Generate standard BIP21 Bitcoin QR code
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=bitcoin:${btcAddress}?amount=${btcAmount}`;
-      document.getElementById('modal-qr-code').src = qrUrl;
+      // BIP21 URI for instant wallet app launch
+      const bip21 = `bitcoin:${btcAddress}?amount=${btcAmount}&label=gemvi-${encodeURIComponent(card.title)}`;
+      document.getElementById('modal-wallet-link').href = bip21;
+
+      // QR Code
+      document.getElementById('modal-qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(bip21)}`;
 
       document.getElementById('card-modal').classList.add('active');
+
+      // Start watching the Bitcoin blockchain in real time via mempool.space
+      startBlockchainWatcher(card, btcAddress);
+    }
+
+    // Real-Time Bitcoin Mempool Scanner
+    async function startBlockchainWatcher(card, address) {
+      if (!address) return;
+      clearInterval(pollInterval);
+
+      // Record baseline transaction count
+      try {
+        const initialRes = await fetch(`https://mempool.space/api/address/${address}/txs`);
+        const initialData = await initialRes.json();
+        initialTxCount = Array.isArray(initialData) ? initialData.length : 0;
+      } catch(e) {
+        initialTxCount = 0;
+      }
+
+      document.getElementById('blockchain-status-text').innerText = "Watching Bitcoin Blockchain for Payment...";
+
+      // Poll mempool every 3.5 seconds
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`https://mempool.space/api/address/${address}/txs`);
+          const txs = await res.json();
+
+          if (Array.isArray(txs) && txs.length > initialTxCount) {
+            // New transaction detected on blockchain!
+            const latestTx = txs[0];
+            clearInterval(pollInterval);
+            onPaymentDetected(card, latestTx.txid);
+          }
+        } catch (err) {
+          console.log("Checking blockchain...");
+        }
+      }, 3500);
+    }
+
+    // Handles confirmed payment & marks item as sold
+    async function onPaymentDetected(card, txid) {
+      const buyerInfo = document.getElementById('buyer-info').value || "Anonymous Buyer";
+
+      // Mark as sold in Cloudflare / Firebase
+      await fetch('/api/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'mark_sold',
+          id: card.id,
+          txid: txid,
+          buyerContact: buyerInfo
+        })
+      });
+
+      // Show verified receipt screen
+      document.getElementById('checkout-view').style.display = 'none';
+      document.getElementById('confirmed-view').style.display = 'block';
+
+      document.getElementById('tx-receipt-box').innerHTML = `
+        <div style="background: #f1f5f9; padding: 10px; border-radius: 8px; font-size: 0.8rem; font-family: monospace;">
+          <b>Transaction ID:</b><br>
+          <a class="tx-link" href="https://mempool.space/tx/${txid}" target="_blank">${txid} ↗</a>
+        </div>
+      `;
+
+      // Refresh listings behind the modal
+      loadListings();
     }
 
     function closeModal() {
+      clearInterval(pollInterval);
       document.getElementById('card-modal').classList.remove('active');
     }
 
@@ -481,12 +596,11 @@
       if (e.target.id === 'card-modal') closeModal();
     }
 
-    function copyText(elementId, btn) {
-      const text = document.getElementById(elementId).innerText;
-      navigator.clipboard.writeText(text);
-      const originalText = btn.innerText;
+    function copyText(id, btn) {
+      navigator.clipboard.writeText(document.getElementById(id).innerText);
+      const prev = btn.innerText;
       btn.innerText = "Copied!";
-      setTimeout(() => { btn.innerText = originalText; }, 2000);
+      setTimeout(() => btn.innerText = prev, 2000);
     }
 
     loadListings();
