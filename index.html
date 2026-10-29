@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>gemvi — Card Lending Marketplace</title>
+  <title>gemvi — Card Marketplace</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -13,8 +13,8 @@
       --text-muted: #64748b;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
-      --badge-bg: #dcfce7;
-      --badge-text: #15803d;
+      --badge-bg: #dbeafe;
+      --badge-text: #1d4ed8;
     }
 
     * {
@@ -31,7 +31,6 @@
       padding-bottom: 60px;
     }
 
-    /* Header */
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -60,7 +59,7 @@
       color: var(--text-muted);
     }
 
-    .btn-lend {
+    .btn-sell {
       background: var(--accent);
       color: #fff;
       text-decoration: none;
@@ -71,11 +70,10 @@
       transition: background 0.15s ease;
     }
 
-    .btn-lend:hover {
+    .btn-sell:hover {
       background: var(--accent-hover);
     }
 
-    /* Main Container */
     main {
       max-width: 1100px;
       margin: 30px auto 0;
@@ -91,14 +89,12 @@
       font-weight: 700;
     }
 
-    /* Grid Layout */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap: 20px;
     }
 
-    /* Card Item */
     .card-item {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -133,11 +129,11 @@
     }
 
     .card-image-box .placeholder-icon {
-      color: var(--text-muted);
       font-size: 2.5rem;
+      color: var(--text-muted);
     }
 
-    .badge-lend {
+    .badge-sale {
       position: absolute;
       top: 10px;
       left: 10px;
@@ -162,15 +158,22 @@
     .card-title {
       font-size: 1.05rem;
       font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text);
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
       word-break: break-word;
     }
 
     .price-row {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
       margin-bottom: 12px;
     }
 
@@ -180,12 +183,7 @@
       color: var(--accent);
     }
 
-    .price-rate {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .btn-rent {
+    .btn-buy {
       width: 100%;
       padding: 8px;
       background: #f1f5f9;
@@ -199,13 +197,12 @@
       transition: all 0.15s ease;
     }
 
-    .btn-rent:hover {
+    .btn-buy:hover {
       background: var(--accent);
       color: #fff;
       border-color: var(--accent);
     }
 
-    /* State messages */
     .status-msg {
       text-align: center;
       padding: 60px 20px;
@@ -213,7 +210,6 @@
       font-size: 1rem;
     }
 
-    /* Mobile adjustments */
     @media (max-width: 600px) {
       .cards-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -243,15 +239,15 @@
     <div class="nav-container">
       <div class="brand">
         <h1>gemvi</h1>
-        <p>Card Lending Hub</p>
+        <p>Card Marketplace</p>
       </div>
-      <a href="upload.html" class="btn-lend">+ Lend a Card</a>
+      <a href="upload.html" class="btn-sell">+ Sell a Card</a>
     </div>
   </header>
 
   <main>
     <div class="hero-text">
-      <h2>Available Cards for Lend</h2>
+      <h2>Cards for Sale</h2>
     </div>
 
     <div id="listings-container" class="cards-grid">
@@ -270,7 +266,7 @@
         container.innerHTML = '';
 
         if (!items || items.length === 0) {
-          container.innerHTML = '<div class="status-msg">No cards listed right now. Be the first to lend one!</div>';
+          container.innerHTML = '<div class="status-msg">No cards for sale right now. Be the first to list one!</div>';
           return;
         }
 
@@ -282,27 +278,31 @@
             ? `<img src="${card.image}" alt="${card.title}">` 
             : `<div class="placeholder-icon">🎴</div>`;
 
+          const descSection = card.description 
+            ? `<p class="card-desc">${card.description}</p>` 
+            : `<p class="card-desc">No description provided.</p>`;
+
           cardDiv.innerHTML = `
             <div class="card-image-box">
-              <span class="badge-lend">Lend</span>
+              <span class="badge-sale">For Sale</span>
               ${imageSection}
             </div>
             <div class="card-body">
               <div>
                 <h3 class="card-title">${card.title}</h3>
+                ${descSection}
                 <div class="price-row">
                   <span class="price-amount">${card.currency} ${card.price}</span>
-                  <span class="price-rate">${card.rate || '/day'}</span>
                 </div>
               </div>
-              <button class="btn-rent" onclick="alert('Contact the owner to borrow: ${card.title}')">Borrow Card</button>
+              <button class="btn-buy" onclick="alert('Contact the seller about: ${card.title}')">Buy Card</button>
             </div>
           `;
 
           container.appendChild(cardDiv);
         });
       } catch (err) {
-        container.innerHTML = '<div class="status-msg">Could not load cards. Please check connection.</div>';
+        container.innerHTML = '<div class="status-msg">Could not load cards. Please check your connection.</div>';
       }
     }
 
