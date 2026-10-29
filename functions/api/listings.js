@@ -1,9 +1,8 @@
-// functions/api/listings.js
-const PROJECT_ID = "gemv-b2cec";
-
 export async function onRequestGet(context) {
   const apiKey = context.env.FIREBASE_API_KEY;
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/listings?key=${apiKey}`;
+  const projectId = context.env.FIREBASE_PROJECT_ID;
+
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
 
   const res = await fetch(url);
   const data = await res.json();
@@ -25,9 +24,10 @@ export async function onRequestGet(context) {
 
 export async function onRequestPost(context) {
   const apiKey = context.env.FIREBASE_API_KEY;
+  const projectId = context.env.FIREBASE_PROJECT_ID;
   const body = await context.request.json();
 
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/listings?key=${apiKey}`;
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
 
   const firestoreBody = {
     fields: {
