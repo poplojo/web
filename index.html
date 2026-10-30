@@ -12,6 +12,7 @@
       --text: #0f172a;
       --text-muted: #64748b;
       --btc: #f7931a;
+      --ltc: #345d9d;
       --green: #16a34a;
       --green-bg: #f0fdf4;
       --green-border: #bbf7d0;
@@ -19,7 +20,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
 
-    /* Top Telegram Announcement */
     .top-announcement {
       background: #0f172a;
       color: #f8fafc;
@@ -32,14 +32,8 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .top-announcement a {
-      color: #38bdf8;
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .top-announcement a:hover {
-      text-decoration: underline;
-    }
+    .top-announcement a { color: #38bdf8; font-weight: 700; text-decoration: none; }
+    .top-announcement a:hover { text-decoration: underline; }
 
     header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
     .nav-container { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -53,13 +47,13 @@
     .card-image-box { width: 100%; aspect-ratio: 4 / 3; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; }
     .card-image-box img { width: 100%; height: 100%; object-fit: cover; }
     .badge-status { position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; }
-    .badge-btc { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+    .badge-btc { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
     .badge-sold { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
     .card-body { padding: 14px 16px; display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
     .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
     .card-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .price-amount { font-size: 1.25rem; font-weight: 800; margin-bottom: 12px; }
-    .btn-buy { width: 100%; padding: 10px; background: var(--btc); border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+    .btn-buy { width: 100%; padding: 10px; background: #0f172a; border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
     .btn-buy:disabled { background: #94a3b8; cursor: not-allowed; }
 
     /* Modal */
@@ -67,43 +61,30 @@
     .modal-overlay.active { display: flex; }
     .modal-box { background: var(--surface); width: 100%; max-width: 480px; max-height: 90vh; border-radius: 16px; overflow-y: auto; padding: 24px; position: relative; }
     .modal-close { position: absolute; top: 12px; right: 12px; border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; background: #fff; }
-    .btc-escrow-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px; text-align: center; margin: 16px 0; }
-    .btc-amount-display { font-size: 1.5rem; font-weight: 900; color: #c2410c; font-family: monospace; }
-    .qr-box { margin: 12px auto; width: 160px; height: 160px; background: #fff; padding: 8px; border-radius: 8px; border: 1px solid #fed7aa; }
+
+    /* Crypto Switcher Tabs */
+    .crypto-tabs { display: flex; gap: 8px; margin: 14px 0; }
+    .crypto-tab { flex: 1; padding: 9px; border-radius: 8px; border: 2px solid var(--border); background: #f8fafc; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center; }
+    .crypto-tab.active-btc { border-color: var(--btc); background: #fff7ed; color: #c2410c; }
+    .crypto-tab.active-ltc { border-color: var(--ltc); background: #eff6ff; color: #1e40af; }
+
+    .escrow-box { border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 14px; border: 1px solid var(--border); }
+    .escrow-btc { background: #fff7ed; border-color: #fed7aa; }
+    .escrow-ltc { background: #eff6ff; border-color: #bfdbfe; }
+    .amount-display { font-size: 1.45rem; font-weight: 900; font-family: monospace; }
+    .qr-box { margin: 12px auto; width: 160px; height: 160px; background: #fff; padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
     .qr-box img { width: 100%; height: 100%; }
-    .addr-bar { background: #fff; border: 1px solid #fed7aa; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 0.75rem; word-break: break-all; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-copy { background: var(--btc); color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-left: 6px; flex-shrink: 0; }
+    .addr-bar { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-family: monospace; font-size: 0.75rem; word-break: break-all; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-copy { background: #0f172a; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-left: 6px; flex-shrink: 0; }
     .btn-verify { width: 100%; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 14px; }
     .btn-verify:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    /* Secret Revealed Screen */
-    .unlocked-secret-card {
-      background: var(--green-bg);
-      border: 2px dashed var(--green);
-      border-radius: 12px;
-      padding: 18px;
-      margin-top: 16px;
-      text-align: left;
-    }
-    .secret-code-display {
-      background: #fff;
-      border: 1px solid var(--green-border);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: monospace;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #14532d;
-      word-break: break-all;
-      white-space: pre-wrap;
-      margin-top: 8px;
-      user-select: all;
-    }
+    .unlocked-secret-card { background: var(--green-bg); border: 2px dashed var(--green); border-radius: 12px; padding: 18px; margin-top: 16px; text-align: left; }
+    .secret-code-display { background: #fff; border: 1px solid var(--green-border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #14532d; word-break: break-all; white-space: pre-wrap; margin-top: 8px; user-select: all; }
   </style>
 </head>
 <body>
 
-  <!-- Top Contact Announcement Bar -->
   <div class="top-announcement">
     <span>Got a card to sell or have questions?</span>
     <a href="https://t.me/Lugsmuth" target="_blank" rel="noopener">DM me on Telegram @Lugsmuth ↗</a>
@@ -113,9 +94,8 @@
     <div class="nav-container">
       <div class="brand">
         <h1>gemvi</h1>
-        <p>Instant Bitcoin Card Store</p>
+        <p>Instant Card Store (BTC & LTC)</p>
       </div>
-      <!-- Button removed: Only store owner accesses admin.html directly -->
     </div>
   </header>
 
@@ -133,25 +113,31 @@
       <!-- Screen 1: Payment Checkout -->
       <div id="modal-pay-view">
         <h3 id="modal-title" style="font-weight: 800; font-size: 1.25rem;"></h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Send payment to receive the card info instantly.</p>
+        <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Choose your payment coin:</p>
 
-        <div class="btc-escrow-box">
-          <div style="font-size: 0.75rem; font-weight: 700; color: #9a3412; text-transform: uppercase;">Amount to Pay</div>
-          <div class="btc-amount-display" id="modal-btc-amount">0.00000000 BTC</div>
-          <div style="font-size: 0.8rem; color: #9a3412;" id="modal-fiat-amount"></div>
+        <!-- Crypto Selector Tabs -->
+        <div class="crypto-tabs">
+          <div class="crypto-tab active-ltc" id="tab-ltc" onclick="selectCrypto('LTC')">Ł Litecoin (Fee < $0.01)</div>
+          <div class="crypto-tab" id="tab-btc" onclick="selectCrypto('BTC')">₿ Bitcoin</div>
+        </div>
+
+        <div class="escrow-box escrow-ltc" id="escrow-box">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;" id="crypto-label">Amount to Pay in Litecoin</div>
+          <div class="amount-display" id="modal-crypto-amount">0.00000000 LTC</div>
+          <div style="font-size: 0.8rem; margin-top: 2px;" id="modal-fiat-amount"></div>
 
           <div class="qr-box">
             <img id="modal-qr" src="" alt="QR">
           </div>
 
-          <div style="font-size: 0.75rem; color: #9a3412; font-weight: 600; text-align: left;">Send to Bitcoin Address:</div>
+          <div style="font-size: 0.75rem; font-weight: 600; text-align: left;" id="address-label">Send to Litecoin Address:</div>
           <div class="addr-bar">
-            <span id="modal-master-address">Loading...</span>
+            <span id="modal-crypto-address">Loading...</span>
             <button class="btn-copy" onclick="copyAddr()">Copy</button>
           </div>
         </div>
 
-        <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">BITCOIN TRANSACTION ID (TXID):</label>
+        <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">TRANSACTION ID (TXID):</label>
         <input type="text" id="buyer-txid" placeholder="Paste TXID from your wallet after sending" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 0.85rem;">
 
         <button class="btn-verify" id="verify-btn" onclick="submitAndVerifyPayment()">Verify Payment & Unlock Card Code</button>
@@ -169,7 +155,7 @@
           <button class="btn-verify" style="margin-top: 10px; padding: 8px;" onclick="copySecret()">Copy Card Info</button>
         </div>
 
-        <button class="btn-buy" style="margin-top: 20px; background: #0f172a;" onclick="closeModal()">Close</button>
+        <button class="btn-buy" style="margin-top: 20px;" onclick="closeModal()">Close</button>
       </div>
 
     </div>
@@ -177,24 +163,35 @@
 
   <script>
     let cardList = [];
-    let platformMasterBtc = "";
+    let platformBtc = "";
+    let platformLtc = "";
     let btcRates = null;
+    let ltcRates = null;
     let activeCard = null;
-    let activeExpectedSats = 0;
+    let selectedCoin = "LTC"; // Default to Litecoin for low fees
+    let activeExpectedUnits = 0;
 
     async function init() {
+      // Fetch BTC & LTC live exchange rates from Coinbase API
       try {
-        const rateRes = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
-        const rateData = await rateRes.json();
-        btcRates = rateData.data.rates;
+        const [btcRes, ltcRes] = await Promise.all([
+          fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC'),
+          fetch('https://api.coinbase.com/v2/exchange-rates?currency=LTC')
+        ]);
+        const btcData = await btcRes.json();
+        const ltcData = await ltcRes.json();
+        btcRates = btcData.data.rates;
+        ltcRates = ltcData.data.rates;
       } catch(e) {
         btcRates = { USD: 65000, EUR: 60000, GBP: 51000, CAD: 90000 };
+        ltcRates = { USD: 70, EUR: 65, GBP: 55, CAD: 95 };
       }
 
       const res = await fetch('/api/listings');
       const data = await res.json();
       cardList = data.listings || [];
-      platformMasterBtc = data.masterBtc || "";
+      platformBtc = data.masterBtc || "";
+      platformLtc = data.masterLtc || "";
 
       renderListings();
     }
@@ -215,11 +212,11 @@
         const imgHtml = card.image ? `<img src="${card.image}">` : `<div style="font-size: 2.5rem;">🎴</div>`;
         const badge = card.sold 
           ? `<span class="badge-status badge-sold">SOLD</span>`
-          : `<span class="badge-status badge-btc">⚡ Instant Delivery</span>`;
+          : `<span class="badge-status badge-btc">⚡ BTC / LTC</span>`;
 
         const btn = card.sold
           ? `<button class="btn-buy" disabled>Sold Out</button>`
-          : `<button class="btn-buy" onclick="openCheckout(${index})">Buy with Bitcoin</button>`;
+          : `<button class="btn-buy" onclick="openCheckout(${index})">Buy Card</button>`;
 
         div.innerHTML = `
           <div class="card-image-box">
@@ -243,36 +240,69 @@
       activeCard = cardList[index];
       document.getElementById('modal-pay-view').style.display = 'block';
       document.getElementById('modal-success-view').style.display = 'none';
-
       document.getElementById('modal-title').innerText = activeCard.title;
-      document.getElementById('modal-master-address').innerText = platformMasterBtc;
+      selectCrypto('LTC'); // Start on Litecoin for low fee
+      document.getElementById('checkout-modal').classList.add('active');
+    }
 
+    function selectCrypto(coin) {
+      selectedCoin = coin;
       const fiat = parseFloat(activeCard.price) || 0;
       const cur = (activeCard.currency || 'USD').toUpperCase();
-      const btcPrice = btcRates[cur] ? parseFloat(btcRates[cur]) : 65000;
-      const baseSats = Math.round((fiat / btcPrice) * 100000000);
-      
-      const uniqueTag = Math.floor(Math.random() * 80) + 10;
-      activeExpectedSats = baseSats + uniqueTag;
+      const tabBtc = document.getElementById('tab-btc');
+      const tabLtc = document.getElementById('tab-ltc');
+      const box = document.getElementById('escrow-box');
+      const addrSpan = document.getElementById('modal-crypto-address');
 
-      const finalBtcAmount = (activeExpectedSats / 100000000).toFixed(8);
-      document.getElementById('modal-btc-amount').innerText = `${finalBtcAmount} BTC`;
-      document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price}`;
+      if (coin === 'LTC') {
+        tabLtc.className = 'crypto-tab active-ltc';
+        tabBtc.className = 'crypto-tab';
+        box.className = 'escrow-box escrow-ltc';
+        document.getElementById('crypto-label').innerText = 'Amount to Pay in Litecoin';
+        document.getElementById('address-label').innerText = 'Send to Litecoin Address:';
+        addrSpan.innerText = platformLtc || 'Litecoin address not set';
 
-      const qrData = `bitcoin:${platformMasterBtc}?amount=${finalBtcAmount}`;
-      document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrData)}`;
+        const rate = ltcRates && ltcRates[cur] ? parseFloat(ltcRates[cur]) : 70;
+        const baseUnits = Math.round((fiat / rate) * 100000000);
+        const tag = Math.floor(Math.random() * 80) + 10;
+        activeExpectedUnits = baseUnits + tag;
 
-      document.getElementById('checkout-modal').classList.add('active');
+        const ltcAmount = (activeExpectedUnits / 100000000).toFixed(8);
+        document.getElementById('modal-crypto-amount').innerText = `${ltcAmount} LTC`;
+        document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price} (Fee < $0.01)`;
+
+        const qrUri = `litecoin:${platformLtc}?amount=${ltcAmount}`;
+        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrUri)}`;
+      } else {
+        tabBtc.className = 'crypto-tab active-btc';
+        tabLtc.className = 'crypto-tab';
+        box.className = 'escrow-box escrow-btc';
+        document.getElementById('crypto-label').innerText = 'Amount to Pay in Bitcoin';
+        document.getElementById('address-label').innerText = 'Send to Bitcoin Address:';
+        addrSpan.innerText = platformBtc || 'Bitcoin address not set';
+
+        const rate = btcRates && btcRates[cur] ? parseFloat(btcRates[cur]) : 65000;
+        const baseUnits = Math.round((fiat / rate) * 100000000);
+        const tag = Math.floor(Math.random() * 80) + 10;
+        activeExpectedUnits = baseUnits + tag;
+
+        const btcAmount = (activeExpectedUnits / 100000000).toFixed(8);
+        document.getElementById('modal-crypto-amount').innerText = `${btcAmount} BTC`;
+        document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price}`;
+
+        const qrUri = `bitcoin:${platformBtc}?amount=${btcAmount}`;
+        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrUri)}`;
+      }
     }
 
     async function submitAndVerifyPayment() {
       const txid = document.getElementById('buyer-txid').value.trim();
       const btn = document.getElementById('verify-btn');
 
-      if (!txid) return alert("Please enter the Bitcoin Transaction ID (TxID) after sending.");
+      if (!txid) return alert(`Please enter the ${selectedCoin} Transaction ID (TxID) after sending.`);
 
       btn.disabled = true;
-      btn.innerText = "Auditing Bitcoin Network & Unlocking...";
+      btn.innerText = `Auditing ${selectedCoin} Blockchain & Unlocking...`;
 
       try {
         const res = await fetch('/api/listings', {
@@ -282,7 +312,8 @@
             action: 'verify_and_buy',
             listingId: activeCard.id,
             txid: txid,
-            expectedSats: activeExpectedSats
+            crypto: selectedCoin,
+            expectedSats: activeExpectedUnits
           })
         });
 
@@ -310,8 +341,8 @@
     }
 
     function copyAddr() {
-      navigator.clipboard.writeText(platformMasterBtc);
-      alert("Bitcoin Address Copied!");
+      navigator.clipboard.writeText(document.getElementById('modal-crypto-address').innerText);
+      alert(`${selectedCoin} Address Copied!`);
     }
 
     function copySecret() {
