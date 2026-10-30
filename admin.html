@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gemvi — Admin Portal</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --btc: #f7931a;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 24px 16px 80px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
+    h1 { font-size: 1.5rem; font-weight: 800; color: var(--btc); }
+    a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
+    a:hover { color: #fff; }
+
+    /* Auth Box */
+    #auth-screen { max-width: 420px; margin: 70px auto; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 26px; }
+    .auth-tabs { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .auth-tab { background: none; border: none; color: var(--text-muted); font-size: 1rem; font-weight: 700; cursor: pointer; padding: 4px 8px; }
+    .auth-tab.active { color: var(--btc); border-bottom: 2px solid var(--btc); }
+    
+    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; margin-top: 6px; background: #0f172a; color: #fff; font-size: 0.95rem; }
+    input:focus, textarea:focus { outline: none; border-color: var(--btc); }
+    .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-btc { background: var(--btc); color: #fff; width: 100%; margin-top: 16px; }
+    
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .stat-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
+    .stat-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
+
+    /* Forms & Inventory Section */
+    .section-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+    .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+
+    /* Cards */
+    .item-card { background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+    .item-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+    .badge { font-size: 0.75rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
+    .badge-sold { background: #fee2e2; color: #b91c1c; }
+    .badge-avail { background: #dcfce7; color: #15803d; }
+
+    .secret-box { background: #172554; border: 1px solid #1e40af; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-family: monospace; font-size: 0.9rem; color: #93c5fd; word-break: break-all; }
+    .supplier-box { background: #451a03; border: 1px solid #78350f; border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-size: 0.85rem; color: #fed7aa; }
+
+    .btn-toggle-paid { padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; border: none; cursor: pointer; }
+    .btn-paid { background: var(--green); color: #fff; }
+    .btn-unpaid { background: var(--yellow); color: #000; }
+    .btn-del { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 5px 10px; border-radius: 6px; cursor: pointer; margin-left: 8px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Authentication Box (Sign In / Sign Up) -->
+  <div id="auth-screen">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up (Auto-Admin)</button>
+    </div>
+
+    <h2 id="auth-heading" style="font-size: 1.25rem; margin-bottom: 4px;">Sign In to Admin Portal</h2>
+    <p id="auth-sub" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">Enter your credentials to access inventory.</p>
+
+    <form id="auth-form">
+      <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">EMAIL</label>
+      <input type="email" id="auth-email" required placeholder="you@domain.com">
+
+      <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-top: 12px; display: block;">PASSWORD</label>
+      <input type="password" id="auth-password" required minlength="6" placeholder="At least 6 characters...">
+
+      <button type="submit" id="auth-submit-btn" class="btn btn-btc">Sign In</button>
+      <div id="auth-error" style="color: var(--red); font-size: 0.85rem; margin-top: 12px; display: none;"></div>
+    </form>
+  </div>
+
+  <!-- Authenticated Admin Dashboard -->
+  <div class="container" id="dashboard-screen" style="display: none;">
+    <header>
+      <div>
+        <h1>gemvi Admin Portal</h1>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+          Logged in as: <b id="user-display-email" style="color: #38bdf8;"></b> <span style="background: #14532d; color: #86efac; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">ROLE: ADMIN</span>
+        </div>
+      </div>
+      <div>
+        <a href="index.html" target="_blank">View Live Store ↗</a>
+        <button id="logout-btn" style="background: none; border: 1px solid var(--red); color: var(--red); padding: 5px 12px; border-radius: 6px; margin-left: 14px; cursor: pointer;">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-title">Total Inventory</div>
+        <div class="stat-val" id="stat-total">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Active For Sale</div>
+        <div class="stat-val" style="color: var(--green);" id="stat-active">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Sold Orders</div>
+        <div class="stat-val" style="color: var(--btc);" id="stat-sold">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Pending Supplier Payouts</div>
+        <div class="stat-val" style="color: var(--yellow);" id="stat-pending">0</div>
+      </div>
+    </div>
+
+    <!-- Section 1: Add New Card -->
+    <div class="section-card">
+      <div class="section-title">+ Add New Card to Store</div>
+      <form id="create-form">
+        <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">CARD TITLE</label>
+        <input type="text" id="new-title" required placeholder="e.g. $50 Steam Card">
+
+        <div class="row-2" style="margin-top: 8px;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">PRICE</label>
+            <input type="number" id="new-price" step="any" required placeholder="25.00">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">CURRENCY</label>
+            <select id="new-currency">
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="CAD">CAD ($)</option>
+            </select>
+          </div>
+        </div>
+
+        <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-top: 10px; display: block;">PUBLIC DESCRIPTION</label>
+        <textarea id="new-desc" rows="2" placeholder="Public information for buyers..."></textarea>
+
+        <label style="font-size: 0.8rem; color: #93c5fd; font-weight: 700; margin-top: 10px; display: block;">🔒 SECRET DELIVERY INFO (Auto-unlocked upon payment)</label>
+        <textarea id="new-secret" rows="2" required placeholder="e.g. Code: STEAM-8899-7744"></textarea>
+
+        <label style="font-size: 0.8rem; color: #fed7aa; font-weight: 700; margin-top: 10px; display: block;">👤 SUPPLIER / PAYOUT NOTE (Who do you give the money to?)</label>
+        <textarea id="new-supplier" rows="2" placeholder="e.g. Sourced from @john on Telegram. Pay him $20 BTC to bc1q..."></textarea>
+
+        <button type="submit" id="submit-btn" class="btn btn-btc">Publish to Store</button>
+      </form>
+    </div>
+
+    <!-- Section 2: Manage Cards & Payout Tracking -->
+    <div class="section-card">
+      <div class="section-title">All Inventory & Payout Tracking</div>
+      <div id="inventory-list">Loading inventory...</div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAhZlkxX81zbk51p5wkRim1LzmHRx0HV48",
+      authDomain: "gemv-b2cec.firebaseapp.com",
+      projectId: "gemv-b2cec",
+      storageBucket: "gemv-b2cec.firebasestorage.app",
+      messagingSenderId: "441214104453",
+      appId: "1:441214104453:web:c5db5f248ad913b85ccaec",
+      measurementId: "G-9TSGHB3MPB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    let currentUser = null;
+    let authMode = "login"; // "login" or "signup"
+
+    // Switch between Login and Sign Up tabs
+    window.switchAuthTab = function(mode) {
+      authMode = mode;
+      document.getElementById('auth-error').style.display = 'none';
+      if (mode === 'login') {
+        document.getElementById('tab-login').className = "auth-tab active";
+        document.getElementById('tab-signup').className = "auth-tab";
+        document.getElementById('auth-heading').innerText = "Sign In to Admin Portal";
+        document.getElementById('auth-sub').innerText = "Enter your credentials to access inventory.";
+        document.getElementById('auth-submit-btn').innerText = "Sign In";
+      } else {
+        document.getElementById('tab-signup').className = "auth-tab active";
+        document.getElementById('tab-login').className = "auth-tab";
+        document.getElementById('auth-heading').innerText = "Create Admin Account";
+        document.getElementById('auth-sub').innerText = "First user to register automatically becomes Admin.";
+        document.getElementById('auth-submit-btn').innerText = "Create Account & Claim Admin";
+      }
+    };
+
+    // Form Submit (Login or Signup)
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const errBox = document.getElementById('auth-error');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      errBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Authenticating...";
+
+      try {
+        if (authMode === "signup") {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch (err) {
+        errBox.innerText = err.message.replace("Firebase: ", "");
+        errBox.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = authMode === 'signup' ? "Create Account & Claim Admin" : "Sign In";
+      }
+    });
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      signOut(auth);
+    });
+
+    // Session State Listener
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('user-display-email').innerText = user.email;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('dashboard-screen').style.display = 'block';
+        loadInventory();
+      } else {
+        currentUser = null;
+        document.getElementById('auth-screen').style.display = 'block';
+        document.getElementById('dashboard-screen').style.display = 'none';
+      }
+    });
+
+    // Load inventory from Cloudflare backend using User ID Token
+    async function loadInventory() {
+      const list = document.getElementById("inventory-list");
+      try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/admin', {
+          headers: { 'Authorization': `Bearer ${idToken}` }
+        });
+
+        if (res.status === 403) {
+          alert("Access Denied: Your account does not have the admin role.");
+          return signOut(auth);
+        }
+        if (!res.ok) throw new Error("Authentication failed");
+
+        const inventory = await res.json();
+
+        // Update Stats
+        const total = inventory.length;
+        const sold = inventory.filter(i => i.sold).length;
+        const active = total - sold;
+        const pendingPayout = inventory.filter(i => i.sold && !i.supplierPaid).length;
+
+        document.getElementById('stat-total').innerText = total;
+        document.getElementById('stat-active').innerText = active;
+        document.getElementById('stat-sold').innerText = sold;
+        document.getElementById('stat-pending').innerText = pendingPayout;
+
+        if (inventory.length === 0) {
+          list.innerHTML = '<p style="color: var(--text-muted)">No cards added yet.</p>';
+          return;
+        }
+
+        list.innerHTML = '';
+        inventory.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'item-card';
+
+          const statusBadge = item.sold 
+            ? `<span class="badge badge-sold">SOLD</span>` 
+            : `<span class="badge badge-avail">FOR SALE</span>`;
+
+          const txHtml = item.txid 
+            ? `<a href="https://mempool.space/tx/${item.txid}" target="_blank" style="color: #38bdf8; font-size: 0.8rem; margin-left: 8px;">View On-Chain Receipt ↗</a>` 
+            : '';
+
+          let payoutControl = '';
+          if (item.sold) {
+            payoutControl = item.supplierPaid
+              ? `<button class="btn-toggle-paid btn-paid" onclick="toggleSupplierPaid('${item.id}', false)">✓ Supplier Paid Out (Click to undo)</button>`
+              : `<button class="btn-toggle-paid btn-unpaid" onclick="toggleSupplierPaid('${item.id}', true)">⚠️ Supplier NOT Paid (Click once you send BTC)</button>`;
+          }
+
+          itemDiv.innerHTML = `
+            <div class="item-header">
+              <div>
+                <strong style="font-size: 1.1rem;">${item.title}</strong> — ${item.currency} ${item.price}
+                ${statusBadge}
+                ${txHtml}
+              </div>
+              <div>
+                ${payoutControl}
+                <button class="btn-del" onclick="deleteCard('${item.id}')">Delete</button>
+              </div>
+            </div>
+
+            <div class="secret-box">
+              🔑 <b>Secret Delivery Code:</b> ${item.secretContent}
+            </div>
+
+            <div class="supplier-box">
+              👤 <b>Supplier & Payout Details:</b><br>${item.supplierNote || 'No supplier note specified.'}
+            </div>
+          `;
+
+          list.appendChild(itemDiv);
+        });
+
+      } catch (err) {
+        list.innerHTML = `<p style="color: var(--red)">${err.message}</p>`;
+      }
+    }
+
+    // Toggle Supplier Paid
+    window.toggleSupplierPaid = async function(id, newState) {
+      const idToken = await currentUser.getIdToken();
+      await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+        body: JSON.stringify({ action: 'toggle_supplier_paid', id, supplierPaid: newState })
+      });
+      loadInventory();
+    };
+
+    // Delete Card
+    window.deleteCard = async function(id) {
+      if (!confirm("Are you sure you want to permanently delete this card?")) return;
+      const idToken = await currentUser.getIdToken();
+      await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+        body: JSON.stringify({ action: 'delete', id })
+      });
+      loadInventory();
+    };
+
+    // Add Card Form Submit
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerText = "Publishing...";
+
+      const payload = {
+        action: 'create',
+        title: document.getElementById('new-title').value,
+        price: document.getElementById('new-price').value,
+        currency: document.getElementById('new-currency').value,
+        description: document.getElementById('new-desc').value,
+        secretContent: document.getElementById('new-secret').value,
+        supplierNote: document.getElementById('new-supplier').value
+      };
+
+      try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          document.getElementById('create-form').reset();
+          loadInventory();
+        } else {
+          alert("Failed to create card.");
+        }
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Publish to Store";
+      }
+    });
+  </script>
+
+</body>
+</html>
