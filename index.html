@@ -18,6 +18,32 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
+
+    /* Top Telegram Contact Bar */
+    .top-announcement {
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 9px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .top-announcement a {
+      color: #38bdf8;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .top-announcement a:hover {
+      text-decoration: underline;
+    }
+
     header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
     .nav-container { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
     .brand h1 { font-size: 1.5rem; font-weight: 800; }
@@ -79,6 +105,12 @@
   </style>
 </head>
 <body>
+
+  <!-- Top Contact Announcement Bar -->
+  <div class="top-announcement">
+    <span>Got a card to sell or have questions?</span>
+    <a href="https://t.me/Lugsmuth" target="_blank" rel="noopener">DM me on Telegram @Lugsmuth ↗</a>
+  </div>
 
   <header>
     <div class="nav-container">
@@ -260,7 +292,6 @@
         const result = await res.json();
 
         if (result.success) {
-          // Reveal the secret content directly to the buyer
           document.getElementById('unlocked-secret-text').innerText = result.secretContent;
           document.getElementById('modal-pay-view').style.display = 'none';
           document.getElementById('modal-success-view').style.display = 'block';
