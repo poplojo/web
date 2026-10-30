@@ -26,15 +26,11 @@
     a:hover { color: #fff; }
 
     /* Auth Box */
-    #auth-screen { max-width: 420px; margin: 70px auto; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 26px; }
-    .auth-tabs { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-    .auth-tab { background: none; border: none; color: var(--text-muted); font-size: 1rem; font-weight: 700; cursor: pointer; padding: 4px 8px; }
-    .auth-tab.active { color: var(--btc); border-bottom: 2px solid var(--btc); }
-    
+    #auth-screen { max-width: 400px; margin: 80px auto; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
     input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; margin-top: 6px; background: #0f172a; color: #fff; font-size: 0.95rem; }
     input:focus, textarea:focus { outline: none; border-color: var(--btc); }
     .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-btc { background: var(--btc); color: #fff; width: 100%; margin-top: 16px; }
+    .btn-btc { background: var(--btc); color: #fff; width: 100%; margin-top: 18px; }
     
     /* Stats */
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
@@ -65,29 +61,24 @@
 </head>
 <body>
 
-  <!-- Authentication Box (Sign In / Sign Up) -->
+  <!-- Sign In Only Box -->
   <div id="auth-screen">
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
-      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up (Auto-Admin)</button>
-    </div>
-
-    <h2 id="auth-heading" style="font-size: 1.25rem; margin-bottom: 4px;">Sign In to Admin Portal</h2>
-    <p id="auth-sub" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">Enter your credentials to access inventory.</p>
+    <h2 style="font-size: 1.3rem; margin-bottom: 4px;">Admin Sign In</h2>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 18px;">Enter your credentials to access the store portal.</p>
 
     <form id="auth-form">
       <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">EMAIL</label>
       <input type="email" id="auth-email" required placeholder="you@domain.com">
 
       <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-top: 12px; display: block;">PASSWORD</label>
-      <input type="password" id="auth-password" required minlength="6" placeholder="At least 6 characters...">
+      <input type="password" id="auth-password" required minlength="6" placeholder="Enter password...">
 
       <button type="submit" id="auth-submit-btn" class="btn btn-btc">Sign In</button>
       <div id="auth-error" style="color: var(--red); font-size: 0.85rem; margin-top: 12px; display: none;"></div>
     </form>
   </div>
 
-  <!-- Authenticated Admin Dashboard -->
+  <!-- Authenticated Dashboard -->
   <div class="container" id="dashboard-screen" style="display: none;">
     <header>
       <div>
@@ -171,7 +162,6 @@
     import { 
       getAuth, 
       signInWithEmailAndPassword, 
-      createUserWithEmailAndPassword, 
       signOut, 
       onAuthStateChanged 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -190,28 +180,8 @@
     const auth = getAuth(app);
 
     let currentUser = null;
-    let authMode = "login"; // "login" or "signup"
 
-    // Switch between Login and Sign Up tabs
-    window.switchAuthTab = function(mode) {
-      authMode = mode;
-      document.getElementById('auth-error').style.display = 'none';
-      if (mode === 'login') {
-        document.getElementById('tab-login').className = "auth-tab active";
-        document.getElementById('tab-signup').className = "auth-tab";
-        document.getElementById('auth-heading').innerText = "Sign In to Admin Portal";
-        document.getElementById('auth-sub').innerText = "Enter your credentials to access inventory.";
-        document.getElementById('auth-submit-btn').innerText = "Sign In";
-      } else {
-        document.getElementById('tab-signup').className = "auth-tab active";
-        document.getElementById('tab-login').className = "auth-tab";
-        document.getElementById('auth-heading').innerText = "Create Admin Account";
-        document.getElementById('auth-sub').innerText = "First user to register automatically becomes Admin.";
-        document.getElementById('auth-submit-btn').innerText = "Create Account & Claim Admin";
-      }
-    };
-
-    // Form Submit (Login or Signup)
+    // Sign In Form Handler
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('auth-email').value.trim();
@@ -221,29 +191,25 @@
 
       errBox.style.display = 'none';
       submitBtn.disabled = true;
-      submitBtn.innerText = "Authenticating...";
+      submitBtn.innerText = "Signing in...";
 
       try {
-        if (authMode === "signup") {
-          await createUserWithEmailAndPassword(auth, email, password);
-        } else {
-          await signInWithEmailAndPassword(auth, email, password);
-        }
+        await signInWithEmailAndPassword(auth, email, password);
       } catch (err) {
         errBox.innerText = err.message.replace("Firebase: ", "");
         errBox.style.display = 'block';
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerText = authMode === 'signup' ? "Create Account & Claim Admin" : "Sign In";
+        submitBtn.innerText = "Sign In";
       }
     });
 
-    // Logout
+    // Logout Handler
     document.getElementById('logout-btn').addEventListener('click', () => {
       signOut(auth);
     });
 
-    // Session State Listener
+    // Auth State Listener
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
@@ -258,7 +224,7 @@
       }
     });
 
-    // Load inventory from Cloudflare backend using User ID Token
+    // Load Inventory via Backend Token Auth
     async function loadInventory() {
       const list = document.getElementById("inventory-list");
       try {
