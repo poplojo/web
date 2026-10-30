@@ -1,7 +1,8 @@
 export async function onRequestGet(context) {
   const apiKey = context.env.FIREBASE_API_KEY;
   const projectId = context.env.FIREBASE_PROJECT_ID;
-  const masterBtc = context.env.MASTER_BTC_ADDRESS || "bc1q_owner_vault";
+  const masterBtc = context.env.MASTER_BTC_ADDRESS || "";
+  const masterLtc = context.env.MASTER_LTC_ADDRESS || "";
 
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
 
@@ -10,10 +11,9 @@ export async function onRequestGet(context) {
     const data = await res.json();
 
     if (!data.documents) {
-      return new Response(JSON.stringify({ listings: [], masterBtc }), { headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ listings: [], masterBtc, masterLtc }), { headers: { "Content-Type": "application/json" } });
     }
 
-    // NOTICE: 'secretContent' is deliberately EXCLUDED here so nobody can inspect it before paying!
     const items = data.documents.map(doc => ({
       id: doc.name.split('/').pop(),
       title: doc.fields?.title?.stringValue || "Untitled Card",
@@ -25,7 +25,7 @@ export async function onRequestGet(context) {
       txid: doc.fields?.txid?.stringValue || null
     }));
 
-    return new Response(JSON.stringify({ listings: items, masterBtc }), { headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ listings: items, masterBtc, masterLtc }), { headers: { "Content-Type": "application/json" } });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
@@ -35,9 +35,10 @@ export async function onRequestPost(context) {
   const apiKey = context.env.FIREBASE_API_KEY;
   const projectId = context.env.FIREBASE_PROJECT_ID;
   const masterBtc = context.env.MASTER_BTC_ADDRESS;
+  const masterLtc = context.env.MASTER_LTC_ADDRESS;
   const body = await context.request.json();
 
-  // 1. RESET CARD (Sandbox test helper)
+  // 1. Reset Card (Test Helper)
   if (body.action === "reset_card") {
     const patchUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings/${body.id}?updateMask.fieldPaths=sold&updateMask.fieldPaths=txid&updateMask.fieldPaths=buyerContact&key=${apiKey}`;
     await fetch(patchUrl, {
@@ -54,15 +55,10 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
   }
 
-  // 2. VERIFY PAYMENT & UNLOCK SECRET
+  // 2. Multi-Crypto Blockchain Verification (BTC or LTC)
   if (body.action === "verify_and_buy") {
-    const { txid, listingId, expectedSats, buyerContact, isTest } = body;
+    const { txid, listingId, expectedSats, crypto, isTest } = body;
 
-    if (!listingId) {
-      return new Response(JSON.stringify({ success: false, message: "Missing listing ID" }), { status: 400 });
-    }
-
-    // Fetch the target card from Firestore to verify state & retrieve secret
     const docUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings/${listingId}?key=${apiKey}`;
     const docRes = await fetch(docUrl);
     if (!docRes.ok) {
@@ -74,62 +70,73 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ success: false, message: "This card was already sold." }), { status: 400 });
     }
 
-    const secretContent = cardDoc.fields?.secretContent?.stringValue || "No secret content provided.";
+    const secretContent = cardDoc.fields?.secretContent?.stringValue || "No code attached.";
 
-    // A: Sandbox Test Mode Bypass
+    // Sandbox Mock Bypass
     if (isTest || (txid && txid.startsWith("test_"))) {
-      const patchUrl = `${docUrl}&updateMask.fieldPaths=sold&updateMask.fieldPaths=txid&updateMask.fieldPaths=buyerContact`;
+      const patchUrl = `${docUrl}&updateMask.fieldPaths=sold&updateMask.fieldPaths=txid`;
       await fetch(patchUrl, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fields: {
             sold: { booleanValue: true },
-            txid: { stringValue: txid || "test_simulated_txid" },
-            buyerContact: { stringValue: buyerContact || "Test Buyer" }
+            txid: { stringValue: txid || "test_txid" }
           }
         })
       });
       return new Response(JSON.stringify({ success: true, secretContent, txid, isTest: true }), { headers: { "Content-Type": "application/json" } });
     }
 
-    // B: Real Bitcoin Blockchain Audit
+    // On-Chain Network Audit
     try {
-      const mempoolRes = await fetch(`https://mempool.space/api/tx/${txid.trim()}`);
-      if (!mempoolRes.ok) {
-        return new Response(JSON.stringify({ success: false, message: "Transaction not found on the Bitcoin network." }), { status: 400 });
+      const isLtc = crypto === "LTC";
+      const targetAddress = isLtc ? masterLtc : masterBtc;
+      const apiUrl = isLtc 
+        ? `https://litecoinspace.org/api/tx/${txid.trim()}`
+        : `https://mempool.space/api/tx/${txid.trim()}`;
+
+      const explorerRes = await fetch(apiUrl);
+      if (!explorerRes.ok) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: `Transaction not found on the ${isLtc ? 'Litecoin' : 'Bitcoin'} network.` 
+        }), { status: 400 });
       }
 
-      const tx = await mempoolRes.json();
-      const validPayment = tx.vout.find(output => output.scriptpubkey_address === masterBtc && output.value >= (expectedSats - 100));
+      const tx = await explorerRes.json();
+      const validPayment = tx.vout.find(output => 
+        output.scriptpubkey_address === targetAddress && output.value >= (expectedSats - 100)
+      );
 
       if (!validPayment) {
-        return new Response(JSON.stringify({ success: false, message: "Payment did not deliver the required satoshis to the master address." }), { status: 400 });
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: `Transaction verified, but required funds did not reach the platform ${isLtc ? 'Litecoin' : 'Bitcoin'} wallet.` 
+        }), { status: 400 });
       }
 
-      // Mark card sold
-      const patchUrl = `${docUrl}&updateMask.fieldPaths=sold&updateMask.fieldPaths=txid&updateMask.fieldPaths=buyerContact`;
+      // Mark Sold
+      const patchUrl = `${docUrl}&updateMask.fieldPaths=sold&updateMask.fieldPaths=txid`;
       await fetch(patchUrl, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fields: {
             sold: { booleanValue: true },
-            txid: { stringValue: txid },
-            buyerContact: { stringValue: buyerContact || "Anonymous" }
+            txid: { stringValue: txid }
           }
         })
       });
 
-      // Deliver the unlocked secret to the buyer
       return new Response(JSON.stringify({ success: true, secretContent, txid }), { headers: { "Content-Type": "application/json" } });
 
     } catch (e) {
-      return new Response(JSON.stringify({ success: false, message: "Verification failed: " + e.message }), { status: 500 });
+      return new Response(JSON.stringify({ success: false, message: "Verification error: " + e.message }), { status: 500 });
     }
   }
 
-  // 3. CREATE NEW LISTING (As the sole store owner)
+  // 3. Create listing
   const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
   const firestoreBody = {
     fields: {
@@ -137,9 +144,11 @@ export async function onRequestPost(context) {
       price: { stringValue: String(body.price || "0") },
       currency: { stringValue: body.currency || "USD" },
       description: { stringValue: body.description || "" },
-      secretContent: { stringValue: body.secretContent || "" }, // Locked until paid!
-      image: { stringValue: body.image || "" },
+      secretContent: { stringValue: body.secretContent || "" },
+      supplierNote: { stringValue: body.supplierNote || "Direct Stock" },
+      supplierPaid: { booleanValue: false },
       sold: { booleanValue: false },
+      image: { stringValue: body.image || "" },
       createdAt: { timestampValue: new Date().toISOString() }
     }
   };
