@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>gemvi — Escrow Card Marketplace</title>
+  <title>gemvi — Instant Card Store</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -12,8 +12,9 @@
       --text: #0f172a;
       --text-muted: #64748b;
       --btc: #f7931a;
-      --btc-dark: #c26e07;
       --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
@@ -51,6 +52,30 @@
     .btn-copy { background: var(--btc); color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-left: 6px; flex-shrink: 0; }
     .btn-verify { width: 100%; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 14px; }
     .btn-verify:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Secret Revealed Screen */
+    .unlocked-secret-card {
+      background: var(--green-bg);
+      border: 2px dashed var(--green);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 16px;
+      text-align: left;
+    }
+    .secret-code-display {
+      background: #fff;
+      border: 1px solid var(--green-border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #14532d;
+      word-break: break-all;
+      white-space: pre-wrap;
+      margin-top: 8px;
+      user-select: all;
+    }
   </style>
 </head>
 <body>
@@ -59,9 +84,9 @@
     <div class="nav-container">
       <div class="brand">
         <h1>gemvi</h1>
-        <p>Escrow Bitcoin Card Marketplace</p>
+        <p>Instant Bitcoin Card Store</p>
       </div>
-      <a href="upload.html" class="btn-sell">+ Sell a Card</a>
+      <a href="upload.html" class="btn-sell">+ Add Card</a>
     </div>
   </header>
 
@@ -71,18 +96,18 @@
     </div>
   </main>
 
-  <!-- Escrow Payment Modal -->
+  <!-- Checkout & Instant Delivery Modal -->
   <div class="modal-overlay" id="checkout-modal">
     <div class="modal-box">
       <button class="modal-close" onclick="closeModal()">×</button>
       
-      <!-- Stage 1: Pay to Escrow -->
+      <!-- Screen 1: Payment Checkout -->
       <div id="modal-pay-view">
         <h3 id="modal-title" style="font-weight: 800; font-size: 1.25rem;"></h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Funds are held in <b>gemvi Vault Escrow</b> until you receive the card.</p>
+        <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Send payment to receive the card info instantly.</p>
 
         <div class="btc-escrow-box">
-          <div style="font-size: 0.75rem; font-weight: 700; color: #9a3412; text-transform: uppercase;">Exact Escrow Deposit</div>
+          <div style="font-size: 0.75rem; font-weight: 700; color: #9a3412; text-transform: uppercase;">Amount to Pay</div>
           <div class="btc-amount-display" id="modal-btc-amount">0.00000000 BTC</div>
           <div style="font-size: 0.8rem; color: #9a3412;" id="modal-fiat-amount"></div>
 
@@ -90,28 +115,32 @@
             <img id="modal-qr" src="" alt="QR">
           </div>
 
-          <div style="font-size: 0.75rem; color: #9a3412; font-weight: 600; text-align: left;">Platform Vault Address:</div>
+          <div style="font-size: 0.75rem; color: #9a3412; font-weight: 600; text-align: left;">Send to Bitcoin Address:</div>
           <div class="addr-bar">
             <span id="modal-master-address">Loading...</span>
             <button class="btn-copy" onclick="copyAddr()">Copy</button>
           </div>
         </div>
 
-        <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">YOUR DELIVERY INFO (EMAIL OR MAILING ADDRESS):</label>
-        <input type="text" id="buyer-contact" placeholder="buyer@gmail.com or Street address" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px;">
-
         <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">BITCOIN TRANSACTION ID (TXID):</label>
         <input type="text" id="buyer-txid" placeholder="Paste TXID from your wallet after sending" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 0.85rem;">
 
-        <button class="btn-verify" id="verify-btn" onclick="submitAndVerifyPayment()">Verify Payment & Claim Card</button>
+        <button class="btn-verify" id="verify-btn" onclick="submitAndVerifyPayment()">Verify Payment & Unlock Card Code</button>
       </div>
 
-      <!-- Stage 2: Verified Screen -->
-      <div id="modal-success-view" style="display: none; text-align: center; padding: 20px 0;">
-        <div style="font-size: 3.5rem; color: var(--green);">✓</div>
-        <h2 style="font-weight: 800; margin-top: 8px;">Payment Verified on Blockchain!</h2>
-        <p style="color: #475569; font-size: 0.95rem; margin-top: 8px;">The exact satoshis arrived in the gemvi Escrow vault. The card is now marked as <b>SOLD</b> to you.</p>
-        <button class="btn-buy" style="margin-top: 20px; background: #0f172a;" onclick="closeModal()">Done</button>
+      <!-- Screen 2: Unlocked Secret Info Screen -->
+      <div id="modal-success-view" style="display: none; text-align: center; padding: 10px 0;">
+        <div style="font-size: 3rem; color: var(--green);">✓</div>
+        <h2 style="font-weight: 800; color: #16a34a;">Payment Confirmed!</h2>
+        <p style="color: #475569; font-size: 0.9rem; margin-top: 4px;">Here is your delivered card information:</p>
+
+        <div class="unlocked-secret-card">
+          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #15803d;">Your Unlocked Secret / Code:</div>
+          <div class="secret-code-display" id="unlocked-secret-text">...</div>
+          <button class="btn-verify" style="margin-top: 10px; padding: 8px;" onclick="copySecret()">Copy Card Info</button>
+        </div>
+
+        <button class="btn-buy" style="margin-top: 20px; background: #0f172a;" onclick="closeModal()">Close</button>
       </div>
 
     </div>
@@ -125,7 +154,6 @@
     let activeExpectedSats = 0;
 
     async function init() {
-      // Get BTC live rates
       try {
         const rateRes = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
         const rateData = await rateRes.json();
@@ -134,7 +162,6 @@
         btcRates = { USD: 65000, EUR: 60000, GBP: 51000, CAD: 90000 };
       }
 
-      // Load listings & your master address from Cloudflare
       const res = await fetch('/api/listings');
       const data = await res.json();
       cardList = data.listings || [];
@@ -148,7 +175,7 @@
       container.innerHTML = '';
 
       if (cardList.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No cards listed yet.</div>';
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No cards listed yet. Click "+ Add Card" to add one!</div>';
         return;
       }
 
@@ -159,7 +186,7 @@
         const imgHtml = card.image ? `<img src="${card.image}">` : `<div style="font-size: 2.5rem;">🎴</div>`;
         const badge = card.sold 
           ? `<span class="badge-status badge-sold">SOLD</span>`
-          : `<span class="badge-status badge-btc">Escrow BTC</span>`;
+          : `<span class="badge-status badge-btc">⚡ Instant Delivery</span>`;
 
         const btn = card.sold
           ? `<button class="btn-buy" disabled>Sold Out</button>`
@@ -173,7 +200,7 @@
           <div class="card-body">
             <div>
               <h3 class="card-title">${card.title}</h3>
-              <p class="card-desc">${card.description || 'No description'}</p>
+              <p class="card-desc">${card.description || 'Instant delivery upon payment.'}</p>
               <div class="price-amount">${card.currency} ${card.price}</div>
             </div>
             ${btn}
@@ -191,38 +218,32 @@
       document.getElementById('modal-title').innerText = activeCard.title;
       document.getElementById('modal-master-address').innerText = platformMasterBtc;
 
-      // Convert Fiat to Satoshis with a unique random 2-digit tail so you know who paid
       const fiat = parseFloat(activeCard.price) || 0;
       const cur = (activeCard.currency || 'USD').toUpperCase();
       const btcPrice = btcRates[cur] ? parseFloat(btcRates[cur]) : 65000;
       const baseSats = Math.round((fiat / btcPrice) * 100000000);
       
-      // Random 2-digit satoshi tag (e.g. 54 satoshis) to differentiate concurrent orders
       const uniqueTag = Math.floor(Math.random() * 80) + 10;
       activeExpectedSats = baseSats + uniqueTag;
 
       const finalBtcAmount = (activeExpectedSats / 100000000).toFixed(8);
       document.getElementById('modal-btc-amount').innerText = `${finalBtcAmount} BTC`;
-      document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price} (Includes unique order tag)`;
+      document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price}`;
 
-      // BIP21 QR code
       const qrData = `bitcoin:${platformMasterBtc}?amount=${finalBtcAmount}`;
       document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrData)}`;
 
       document.getElementById('checkout-modal').classList.add('active');
     }
 
-    // SERVER VERIFICATION: Submits TXID to Cloudflare backend for mathematical audit
     async function submitAndVerifyPayment() {
       const txid = document.getElementById('buyer-txid').value.trim();
-      const buyerContact = document.getElementById('buyer-contact').value.trim();
       const btn = document.getElementById('verify-btn');
 
       if (!txid) return alert("Please enter the Bitcoin Transaction ID (TxID) after sending.");
-      if (!buyerContact) return alert("Please enter your email or mailing address so the seller can fulfill the order.");
 
       btn.disabled = true;
-      btn.innerText = "Auditing Bitcoin Network...";
+      btn.innerText = "Auditing Bitcoin Network & Unlocking...";
 
       try {
         const res = await fetch('/api/listings', {
@@ -232,26 +253,27 @@
             action: 'verify_and_buy',
             listingId: activeCard.id,
             txid: txid,
-            expectedSats: activeExpectedSats,
-            buyerContact: buyerContact
+            expectedSats: activeExpectedSats
           })
         });
 
         const result = await res.json();
 
         if (result.success) {
+          // Reveal the secret content directly to the buyer
+          document.getElementById('unlocked-secret-text').innerText = result.secretContent;
           document.getElementById('modal-pay-view').style.display = 'none';
           document.getElementById('modal-success-view').style.display = 'block';
-          init(); // Refresh listings to show item SOLD
+          init();
         } else {
           alert("Verification Failed: " + result.message);
           btn.disabled = false;
-          btn.innerText = "Verify Payment & Claim Card";
+          btn.innerText = "Verify Payment & Unlock Card Code";
         }
       } catch (err) {
         alert("Server error: " + err.message);
         btn.disabled = false;
-        btn.innerText = "Verify Payment & Claim Card";
+        btn.innerText = "Verify Payment & Unlock Card Code";
       }
     }
 
@@ -261,7 +283,12 @@
 
     function copyAddr() {
       navigator.clipboard.writeText(platformMasterBtc);
-      alert("Platform Vault Address Copied!");
+      alert("Bitcoin Address Copied!");
+    }
+
+    function copySecret() {
+      navigator.clipboard.writeText(document.getElementById('unlocked-secret-text').innerText);
+      alert("Card Info Copied to Clipboard!");
     }
 
     init();
