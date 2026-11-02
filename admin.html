@@ -274,7 +274,7 @@
           if (item.sold) {
             payoutControl = item.supplierPaid
               ? `<button class="btn-toggle-paid btn-paid" onclick="toggleSupplierPaid('${item.id}', false)">✓ Supplier Paid Out (Click to undo)</button>`
-              : `<button class="btn-toggle-paid btn-unpaid" onclick="toggleSupplierPaid('${item.id}', true)">⚠️ Supplier NOT Paid (Click once you send BTC)</button>`;
+              : `<button class="btn-toggle-paid btn-unpaid" onclick="toggleSupplierPaid('${item.id}', true)">⚠️ Supplier NOT Paid (Click once you send BTC/LTC)</button>`;
           }
 
           itemDiv.innerHTML = `
@@ -309,25 +309,44 @@
 
     // Toggle Supplier Paid
     window.toggleSupplierPaid = async function(id, newState) {
-      const idToken = await currentUser.getIdToken();
-      await fetch('/api/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ action: 'toggle_supplier_paid', id, supplierPaid: newState })
-      });
-      loadInventory();
+      try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify({ action: 'toggle_supplier_paid', id, supplierPaid: newState })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadInventory();
+        } else {
+          alert("Update failed: " + (data.error || "Permission error"));
+        }
+      } catch (e) {
+        alert("Update error: " + e.message);
+      }
     };
 
-    // Delete Card
+    // Delete Card with Live Feedback
     window.deleteCard = async function(id) {
       if (!confirm("Are you sure you want to permanently delete this card?")) return;
-      const idToken = await currentUser.getIdToken();
-      await fetch('/api/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ action: 'delete', id })
-      });
-      loadInventory();
+      try {
+        const idToken = await currentUser.getIdToken();
+        const res = await fetch('/api/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+          body: JSON.stringify({ action: 'delete', id })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          loadInventory();
+        } else {
+          alert("Delete failed: " + (data.error || "Permission error"));
+        }
+      } catch (err) {
+        alert("Delete failed: " + err.message);
+      }
     };
 
     // Add Card Form Submit
@@ -354,12 +373,13 @@
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
           body: JSON.stringify(payload)
         });
+        const data = await res.json();
 
-        if (res.ok) {
+        if (data.success) {
           document.getElementById('create-form').reset();
           loadInventory();
         } else {
-          alert("Failed to create card.");
+          alert("Failed to create card: " + (data.error || "Permission error"));
         }
       } catch (err) {
         alert(err.message);
