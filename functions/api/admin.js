@@ -2,7 +2,7 @@ export async function onRequest(context) {
   const apiKey = context.env.FIREBASE_API_KEY;
   const projectId = context.env.FIREBASE_PROJECT_ID;
 
-  // 1. Extract Bearer Token
+  // 1. Extract Bearer Token from Request Header
   const authHeader = context.request.headers.get("Authorization");
   const idToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split("Bearer ")[1] : null;
 
@@ -13,7 +13,7 @@ export async function onRequest(context) {
     });
   }
 
-  // 2. Cryptographically verify token with Google Identity API
+  // 2. Cryptographically Verify the Token with Google Identity API
   let authUser = null;
   try {
     const verifyRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
@@ -32,10 +32,13 @@ export async function onRequest(context) {
 
     authUser = verifyData.users[0];
   } catch (err) {
-    return new Response(JSON.stringify({ error: "Token verification failed: " + err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Token verification failed: " + err.message }), { 
+      status: 500, 
+      headers: { "Content-Type": "application/json" } 
+    });
   }
 
-  // 3. Admin Check / Auto-Grant on First Signup
+  // 3. Admin Check / Auto-Grant on First User Registration
   const uid = authUser.localId;
   const userAdminDocUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/admins/${uid}?key=${apiKey}`;
   const checkRes = await fetch(userAdminDocUrl, {
@@ -43,7 +46,6 @@ export async function onRequest(context) {
   });
 
   if (!checkRes.ok) {
-    // Check if any admin exists
     const adminsUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/admins?key=${apiKey}`;
     const adminsRes = await fetch(adminsUrl, {
       headers: { "Authorization": `Bearer ${idToken}` }
@@ -52,6 +54,7 @@ export async function onRequest(context) {
     const existingAdmins = adminsData.documents || [];
 
     if (existingAdmins.length === 0) {
+      // First user bootstrap
       await fetch(userAdminDocUrl, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${idToken}` },
@@ -70,7 +73,7 @@ export async function onRequest(context) {
     }
   }
 
-  // --- GET: Fetch Complete Inventory ---
+  // --- GET: Fetch Complete Inventory (Includes Secret Codes & Supplier Notes) ---
   if (context.request.method === "GET") {
     const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings?key=${apiKey}`;
     try {
@@ -98,15 +101,18 @@ export async function onRequest(context) {
 
       return new Response(JSON.stringify(items), { headers: { "Content-Type": "application/json" } });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      return new Response(JSON.stringify({ error: e.message }), { 
+        status: 500, 
+        headers: { "Content-Type": "application/json" } 
+      });
     }
   }
 
-  // --- POST: Admin Actions ---
+  // --- POST: Admin Actions (Create, Delete, Toggle Paid) ---
   if (context.request.method === "POST") {
     const body = await context.request.json();
 
-    // 1. DELETE CARD (Forwards Auth Token to Google Firestore)
+    // 1. DELETE CARD
     if (body.action === "delete") {
       const delUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/listings/${body.id}?key=${apiKey}`;
       const delRes = await fetch(delUrl, { 
@@ -115,11 +121,14 @@ export async function onRequest(context) {
       });
 
       if (!delRes.ok) {
-        const errJson = await delRes.json();
+        const errJson = await delRes.json().catch(() => ({}));
         return new Response(JSON.stringify({ 
           success: false, 
-          error: errJson.error?.message || "Firestore blocked deletion" 
-        }), { status: 400 });
+          error: errJson.error?.message || "Firestore blocked deletion." 
+        }), { 
+          status: 400, 
+          headers: { "Content-Type": "application/json" } 
+        });
       }
 
       return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
@@ -135,7 +144,19 @@ export async function onRequest(context) {
           fields: { supplierPaid: { booleanValue: Boolean(body.supplierPaid) } }
         })
       });
-      return new Response(JSON.stringify({ success: res.ok }), { headers: { "Content-Type": "application/json" } });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: errJson.error?.message || "Failed to update payout status." 
+        }), { 
+          status: 400, 
+          headers: { "Content-Type": "application/json" } 
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
     }
 
     // 3. CREATE NEW CARD
@@ -155,14 +176,27 @@ export async function onRequest(context) {
           createdAt: { timestampValue: new Date().toISOString() }
         }
       };
+
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${idToken}` },
         body: JSON.stringify(firestoreBody)
       });
-      return new Response(JSON.stringify({ success: res.ok }), { headers: { "Content-Type": "application/json" } });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: errJson.error?.message || "Firestore rejected the listing." 
+        }), { 
+          status: 400, 
+          headers: { "Content-Type": "application/json" } 
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
     }
   }
 
   return new Response("Method not allowed", { status: 405 });
-                  }
+}
