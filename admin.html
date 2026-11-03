@@ -25,31 +25,26 @@
     a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; }
     a:hover { color: #fff; }
 
-    /* Auth Box */
     #auth-screen { max-width: 400px; margin: 80px auto; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
     input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; margin-top: 6px; background: #0f172a; color: #fff; font-size: 0.95rem; }
     input:focus, textarea:focus { outline: none; border-color: var(--btc); }
     .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
     .btn-btc { background: var(--btc); color: #fff; width: 100%; margin-top: 18px; }
     
-    /* Stats */
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
     .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
     .stat-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
     .stat-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
 
-    /* Forms & Inventory Section */
     .section-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px; }
     .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
     .row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
 
-    /* Image Dropzone & Preview */
-    .image-dropzone { margin-top: 6px; border: 2px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; cursor: pointer; background: #0f172a; transition: border-color 0.2s; }
+    .image-dropzone { margin-top: 6px; border: 2px dashed var(--border); border-radius: 8px; padding: 18px; text-align: center; cursor: pointer; background: #0f172a; }
     .image-dropzone:hover { border-color: var(--btc); }
-    .preview-box { margin-top: 10px; display: none; width: 100%; max-height: 220px; border-radius: 6px; overflow: hidden; background: #000; }
-    .preview-box img { width: 100%; height: 100%; max-height: 220px; object-fit: contain; display: block; margin: 0 auto; }
+    .preview-box { margin-top: 10px; display: none; width: 100%; max-height: 200px; border-radius: 6px; overflow: hidden; background: #000; }
+    .preview-box img { width: 100%; height: 100%; max-height: 200px; object-fit: contain; display: block; margin: 0 auto; }
 
-    /* Cards */
     .item-card { background: #0f172a; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
     .item-content-wrap { display: flex; gap: 14px; align-items: flex-start; }
     .item-thumb { width: 75px; height: 75px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: #1e293b; border: 1px solid var(--border); }
@@ -70,7 +65,7 @@
 </head>
 <body>
 
-  <!-- Sign In Only Box -->
+  <!-- Sign In Screen -->
   <div id="auth-screen">
     <h2 style="font-size: 1.3rem; margin-bottom: 4px;">Admin Sign In</h2>
     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 18px;">Enter your credentials to access the store portal.</p>
@@ -102,7 +97,6 @@
       </div>
     </header>
 
-    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-title">Total Inventory</div>
@@ -122,7 +116,7 @@
       </div>
     </div>
 
-    <!-- Section 1: Add New Card -->
+    <!-- Add Card Form -->
     <div class="section-card">
       <div class="section-title">+ Add New Card to Store</div>
       <form id="create-form">
@@ -168,7 +162,7 @@
       </form>
     </div>
 
-    <!-- Section 2: Manage Cards & Payout Tracking -->
+    <!-- Inventory Section -->
     <div class="section-card">
       <div class="section-title">All Inventory & Payout Tracking</div>
       <div id="inventory-list">Loading inventory...</div>
@@ -199,48 +193,64 @@
     const auth = getAuth(app);
 
     let currentUser = null;
+    let readyImageBase64 = null; // Stored in memory immediately on selection
 
-    // Image file selection & live preview
     const photoInput = document.getElementById('new-photo');
     const photoLabel = document.getElementById('photo-label');
     const previewBox = document.getElementById('preview-box');
     const previewImg = document.getElementById('preview-img');
 
+    // Compress image instantly when picked so submit never waits or hangs
     photoInput.addEventListener('change', () => {
       const file = photoInput.files[0];
-      if (file) {
-        photoLabel.innerText = "Selected: " + file.name;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          previewImg.src = e.target.result;
-          previewBox.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+      if (!file) return;
 
-    // Client-side image resize helper (keeps payloads small & fast)
-    function processImage(file) {
-      return new Promise((resolve) => {
-        if (!file) return resolve(null);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
+      photoLabel.innerText = "Processing image...";
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
             const canvas = document.createElement('canvas');
-            const maxDim = 800;
-            let width = img.width, height = img.height;
-            if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
-            else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
-            canvas.width = width; canvas.height = height;
-            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.75));
-          };
-          img.src = e.target.result;
+            const maxDim = 600;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height && width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            readyImageBase64 = canvas.toDataURL('image/jpeg', 0.65);
+            previewImg.src = readyImageBase64;
+            previewBox.style.display = 'block';
+            photoLabel.innerText = "✓ Photo ready (" + file.name + ")";
+          } catch (err) {
+            console.error("Canvas error", err);
+            readyImageBase64 = e.target.result;
+            previewImg.src = readyImageBase64;
+            previewBox.style.display = 'block';
+            photoLabel.innerText = "Selected: " + file.name;
+          }
         };
-        reader.readAsDataURL(file);
-      });
-    }
+        img.onerror = () => {
+          alert("Could not load image format. Try JPEG or PNG.");
+          photoLabel.innerText = "📷 Tap to upload card picture";
+        };
+        img.src = e.target.result;
+      };
+
+      reader.readAsDataURL(file);
+    });
 
     // Sign In Form Handler
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
@@ -265,7 +275,7 @@
       }
     });
 
-    // Logout Handler
+    // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
       signOut(auth);
     });
@@ -285,7 +295,7 @@
       }
     });
 
-    // Load Inventory via Backend Token Auth
+    // Load Inventory
     async function loadInventory() {
       const list = document.getElementById("inventory-list");
       try {
@@ -397,7 +407,7 @@
       }
     };
 
-    // Delete Card with Live Feedback
+    // Delete Card
     window.deleteCard = async function(id) {
       if (!confirm("Are you sure you want to permanently delete this card?")) return;
       try {
@@ -419,17 +429,14 @@
       }
     };
 
-    // Add Card Form Submit
+    // Instant Form Submit
     document.getElementById('create-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
-      btn.innerText = "Publishing with picture...";
-
-      const file = photoInput.files[0];
+      btn.innerText = "Publishing to store...";
 
       try {
-        const imageBase64 = await processImage(file);
         const payload = {
           action: 'create',
           title: document.getElementById('new-title').value,
@@ -438,7 +445,7 @@
           description: document.getElementById('new-desc').value,
           secretContent: document.getElementById('new-secret').value,
           supplierNote: document.getElementById('new-supplier').value,
-          image: imageBase64
+          image: readyImageBase64 || ""
         };
 
         const idToken = await currentUser.getIdToken();
@@ -451,6 +458,7 @@
 
         if (data.success) {
           document.getElementById('create-form').reset();
+          readyImageBase64 = null;
           photoLabel.innerText = "📷 Tap to upload card picture";
           previewBox.style.display = 'none';
           previewImg.src = "";
@@ -459,7 +467,7 @@
           alert("Failed to create card: " + (data.error || "Permission error"));
         }
       } catch (err) {
-        alert(err.message);
+        alert("Publish error: " + err.message);
       } finally {
         btn.disabled = false;
         btn.innerText = "Publish to Store";
