@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gemvi — Bulk Card Store</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --btc: #f7931a;
+      --ltc: #345d9d;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
+
+    .top-announcement {
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 9px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .top-announcement a { color: #38bdf8; font-weight: 700; text-decoration: none; }
+    .top-announcement a:hover { text-decoration: underline; }
+
+    header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .nav-container { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .brand h1 { font-size: 1.5rem; font-weight: 800; }
+    .brand p { font-size: 0.8rem; color: var(--text-muted); }
+    .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; font-weight: 600; }
+    .back-link:hover { color: var(--text); }
+
+    main { max-width: 1100px; margin: 30px auto 0; padding: 0 20px; }
+
+    .page-head { margin-bottom: 22px; }
+    .page-head h2 { font-size: 1.35rem; font-weight: 800; }
+    .page-head p { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .card-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .card-item.is-sold { opacity: 0.6; filter: grayscale(50%); }
+    .card-image-box { width: 100%; aspect-ratio: 4 / 3; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; }
+    .card-image-box img { width: 100%; height: 100%; object-fit: cover; }
+    .badge-status { position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; }
+    .badge-btc { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+    .badge-sold { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .badge-bulk { position: absolute; top: 10px; right: 10px; background: var(--btc); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; }
+    .card-body { padding: 14px 16px; display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+    .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+    .card-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .price-amount { font-size: 1.25rem; font-weight: 800; }
+    .unit-hint { font-size: 0.78rem; color: var(--text-muted); }
+    .btn-buy { width: 100%; padding: 10px; background: #0f172a; border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+    .btn-buy:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: var(--surface); width: 100%; max-width: 520px; max-height: 90vh; border-radius: 16px; overflow-y: auto; padding: 24px; position: relative; }
+    .modal-close { position: absolute; top: 12px; right: 12px; border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; background: #fff; }
+
+    /* Crypto Switcher Tabs */
+    .crypto-tabs { display: flex; gap: 8px; margin: 14px 0; }
+    .crypto-tab { flex: 1; padding: 9px; border-radius: 8px; border: 2px solid var(--border); background: #f8fafc; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center; }
+    .crypto-tab.active-btc { border-color: var(--btc); background: #fff7ed; color: #c2410c; }
+    .crypto-tab.active-ltc { border-color: var(--ltc); background: #eff6ff; color: #1e40af; }
+
+    .escrow-box { border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 14px; border: 1px solid var(--border); }
+    .escrow-btc { background: #fff7ed; border-color: #fed7aa; }
+    .escrow-ltc { background: #eff6ff; border-color: #bfdbfe; }
+    .amount-display { font-size: 1.45rem; font-weight: 900; font-family: monospace; }
+    .qr-box { margin: 12px auto; width: 160px; height: 160px; background: #fff; padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
+    .qr-box img { width: 100%; height: 100%; }
+    .addr-bar { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-family: monospace; font-size: 0.75rem; word-break: break-all; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-copy { background: #0f172a; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-left: 6px; flex-shrink: 0; }
+    .btn-verify { width: 100%; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 14px; }
+    .btn-verify:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .unlocked-secret-card { background: var(--green-bg); border: 2px dashed var(--green); border-radius: 12px; padding: 18px; margin-top: 16px; text-align: left; }
+    .code-item { margin-top: 10px; }
+    .code-item:first-child { margin-top: 8px; }
+    .code-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #15803d; letter-spacing: 0.03em; }
+    .code-value { background: #fff; border: 1px solid var(--green-border); border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #14532d; word-break: break-all; white-space: pre-wrap; margin-top: 4px; user-select: all; }
+
+    .bulk-count-banner {
+      display: inline-block;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #c2410c;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-announcement">
+    <span>Got cards to sell or have questions?</span>
+    <a href="https://t.me/Lugsmuth" target="_blank" rel="noopener">DM me on Telegram @Lugsmuth ↗</a>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <div class="brand">
+        <h1>gemvi — Bulk</h1>
+        <p>Credit Card Bundles (BTC & LTC)</p>
+      </div>
+      <a href="index.html" class="back-link">← Back to Store</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <h2>Bulk Card Store</h2>
+      <p>Multiple codes delivered in one purchase. Instant delivery on blockchain confirmation.</p>
+    </div>
+
+    <div class="cards-grid" id="listings-container">
+      <div style="text-align: center; padding: 40px; color: #64748b;">Loading bulk packages...</div>
+    </div>
+  </main>
+
+  <!-- Checkout & Instant Delivery Modal -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">×</button>
+
+      <!-- Screen 1: Payment Checkout -->
+      <div id="modal-pay-view">
+        <h3 id="modal-title" style="font-weight: 800; font-size: 1.25rem;"></h3>
+        <div id="modal-bulk-count" class="bulk-count-banner" style="display:none;"></div>
+        <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Choose your payment coin:</p>
+
+        <div class="crypto-tabs">
+          <div class="crypto-tab active-ltc" id="tab-ltc" onclick="selectCrypto('LTC')">Ł Litecoin (Fee < $0.01)</div>
+          <div class="crypto-tab" id="tab-btc" onclick="selectCrypto('BTC')">₿ Bitcoin</div>
+        </div>
+
+        <div class="escrow-box escrow-ltc" id="escrow-box">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;" id="crypto-label">Amount to Pay in Litecoin</div>
+          <div class="amount-display" id="modal-crypto-amount">0.00000000 LTC</div>
+          <div style="font-size: 0.8rem; margin-top: 2px;" id="modal-fiat-amount"></div>
+
+          <div class="qr-box">
+            <img id="modal-qr" src="" alt="QR">
+          </div>
+
+          <div style="font-size: 0.75rem; font-weight: 600; text-align: left;" id="address-label">Send to Litecoin Address:</div>
+          <div class="addr-bar">
+            <span id="modal-crypto-address">Loading...</span>
+            <button class="btn-copy" onclick="copyAddr()">Copy</button>
+          </div>
+        </div>
+
+        <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">TRANSACTION ID (TXID):</label>
+        <input type="text" id="buyer-txid" placeholder="Paste TXID from your wallet after sending" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 0.85rem;">
+
+        <button class="btn-verify" id="verify-btn" onclick="submitAndVerifyPayment()">Verify Payment & Unlock Codes</button>
+      </div>
+
+      <!-- Screen 2: Unlocked Bulk Codes -->
+      <div id="modal-success-view" style="display: none; text-align: center; padding: 10px 0;">
+        <div style="font-size: 3rem; color: var(--green);">✓</div>
+        <h2 style="font-weight: 800; color: #16a34a;">Payment Confirmed!</h2>
+        <p style="color: #475569; font-size: 0.9rem; margin-top: 4px;" id="success-sub">Your bulk codes are below.</p>
+
+        <div class="unlocked-secret-card">
+          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #15803d;">Unlocked Codes</div>
+          <div id="unlocked-secret-text"></div>
+          <button class="btn-verify" style="margin-top: 12px; padding: 8px;" onclick="copySecret()">Copy All Codes</button>
+        </div>
+
+        <button class="btn-buy" style="margin-top: 20px;" onclick="closeModal()">Close</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let cardList = [];
+    let platformBtc = "";
+    let platformLtc = "";
+    let btcRates = null;
+    let ltcRates = null;
+    let activeCard = null;
+    let selectedCoin = "LTC";
+    let activeExpectedUnits = 0;
+    let unlockedCodes = [];
+
+    async function init() {
+      try {
+        const [btcRes, ltcRes] = await Promise.all([
+          fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC'),
+          fetch('https://api.coinbase.com/v2/exchange-rates?currency=LTC')
+        ]);
+        const btcData = await btcRes.json();
+        const ltcData = await ltcRes.json();
+        btcRates = btcData.data.rates;
+        ltcRates = ltcData.data.rates;
+      } catch(e) {
+        btcRates = { USD: 65000, EUR: 60000, GBP: 51000, CAD: 90000 };
+        ltcRates = { USD: 70, EUR: 65, GBP: 55, CAD: 95 };
+      }
+
+      const res = await fetch('/api/listings');
+      const data = await res.json();
+      cardList = (data.listings || []).filter(c => c.bulk === true || (c.bulkQty && c.bulkQty > 1));
+      platformBtc = data.masterBtc || "";
+      platformLtc = data.masterLtc || "";
+
+      renderListings();
+    }
+
+    function bulkQty(card) {
+      const q = parseInt(card.bulkQty, 10);
+      return Number.isFinite(q) && q > 0 ? q : 1;
+    }
+
+    function renderListings() {
+      const container = document.getElementById('listings-container');
+      container.innerHTML = '';
+
+      if (cardList.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1;">No bulk packages listed right now. Check back soon!</div>';
+        return;
+      }
+
+      cardList.forEach((card, index) => {
+        const qty = bulkQty(card);
+        const div = document.createElement('div');
+        div.className = `card-item ${card.sold ? 'is-sold' : ''}`;
+
+        const imgHtml = card.image
+          ? `<img src="${card.image}" alt="">`
+          : `<div style="font-size: 2.5rem;">🎴</div>`;
+        const badge = card.sold
+          ? `<span class="badge-status badge-sold">SOLD</span>`
+          : `<span class="badge-status badge-btc">⚡ BTC / LTC</span>`;
+        const bulkBadge = `<span class="badge-bulk">× ${qty}</span>`;
+
+        const btn = card.sold
+          ? `<button class="btn-buy" disabled>Sold Out</button>`
+          : `<button class="btn-buy" onclick="openCheckout(${index})">Buy Bundle</button>`;
+
+        const priceNum = parseFloat(card.price);
+        const unitHint = qty > 1 && Number.isFinite(priceNum)
+          ? `<span class="unit-hint">≈ ${card.currency} ${(priceNum / qty).toFixed(2)} / code</span>`
+          : '';
+
+        div.innerHTML = `
+          <div class="card-image-box">
+            ${badge}
+            ${bulkBadge}
+            ${imgHtml}
+          </div>
+          <div class="card-body">
+            <div>
+              <h3 class="card-title"></h3>
+              <p class="card-desc"></p>
+              <div class="price-row">
+                <span class="price-amount"></span>
+                ${unitHint}
+              </div>
+            </div>
+            ${btn}
+          </div>
+        `;
+        // Safe text insertion — no HTML interpolation of user content
+        div.querySelector('.card-title').textContent = card.title || '';
+        div.querySelector('.card-desc').textContent = card.description || 'Bulk codes delivered instantly upon payment.';
+        div.querySelector('.price-amount').textContent = `${card.currency} ${card.price}`;
+        container.appendChild(div);
+      });
+    }
+
+    function openCheckout(index) {
+      activeCard = cardList[index];
+      const qty = bulkQty(activeCard);
+
+      document.getElementById('modal-pay-view').style.display = 'block';
+      document.getElementById('modal-success-view').style.display = 'none';
+      document.getElementById('modal-title').textContent = activeCard.title || '';
+      document.getElementById('buyer-txid').value = '';
+
+      const bulkBanner = document.getElementById('modal-bulk-count');
+      if (qty > 1) {
+        bulkBanner.style.display = 'inline-block';
+        bulkBanner.textContent = `Bundle contains ${qty} codes`;
+      } else {
+        bulkBanner.style.display = 'none';
+      }
+
+      selectCrypto('LTC');
+      document.getElementById('checkout-modal').classList.add('active');
+    }
+
+    function selectCrypto(coin) {
+      selectedCoin = coin;
+      const fiat = parseFloat(activeCard.price) || 0;
+      const cur = (activeCard.currency || 'USD').toUpperCase();
+      const tabBtc = document.getElementById('tab-btc');
+      const tabLtc = document.getElementById('tab-ltc');
+      const box = document.getElementById('escrow-box');
+      const addrSpan = document.getElementById('modal-crypto-address');
+
+      if (coin === 'LTC') {
+        tabLtc.className = 'crypto-tab active-ltc';
+        tabBtc.className = 'crypto-tab';
+        box.className = 'escrow-box escrow-ltc';
+        document.getElementById('crypto-label').innerText = 'Amount to Pay in Litecoin';
+        document.getElementById('address-label').innerText = 'Send to Litecoin Address:';
+        addrSpan.innerText = platformLtc || 'Litecoin address not set';
+
+        const rate = ltcRates && ltcRates[cur] ? parseFloat(ltcRates[cur]) : 70;
+        const baseUnits = Math.round((fiat / rate) * 100000000);
+        const tag = Math.floor(Math.random() * 80) + 10;
+        activeExpectedUnits = baseUnits + tag;
+
+        const ltcAmount = (activeExpectedUnits / 100000000).toFixed(8);
+        document.getElementById('modal-crypto-amount').innerText = `${ltcAmount} LTC`;
+        document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price} (Fee < $0.01)`;
+
+        const qrUri = `litecoin:${platformLtc}?amount=${ltcAmount}`;
+        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrUri)}`;
+      } else {
+        tabBtc.className = 'crypto-tab active-btc';
+        tabLtc.className = 'crypto-tab';
+        box.className = 'escrow-box escrow-btc';
+        document.getElementById('crypto-label').innerText = 'Amount to Pay in Bitcoin';
+        document.getElementById('address-label').innerText = 'Send to Bitcoin Address:';
+        addrSpan.innerText = platformBtc || 'Bitcoin address not set';
+
+        const rate = btcRates && btcRates[cur] ? parseFloat(btcRates[cur]) : 65000;
+        const baseUnits = Math.round((fiat / rate) * 100000000);
+        const tag = Math.floor(Math.random() * 80) + 10;
+        activeExpectedUnits = baseUnits + tag;
+
+        const btcAmount = (activeExpectedUnits / 100000000).toFixed(8);
+        document.getElementById('modal-crypto-amount').innerText = `${btcAmount} BTC`;
+        document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price}`;
+
+        const qrUri = `bitcoin:${platformBtc}?amount=${btcAmount}`;
+        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrUri)}`;
+      }
+    }
+
+    async function submitAndVerifyPayment() {
+      const txid = document.getElementById('buyer-txid').value.trim();
+      const btn = document.getElementById('verify-btn');
+
+      if (!txid) return alert(`Please enter the ${selectedCoin} Transaction ID (TxID) after sending.`);
+
+      btn.disabled = true;
+      btn.innerText = `Auditing ${selectedCoin} Blockchain & Unlocking...`;
+
+      try {
+        const res = await fetch('/api/listings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'verify_and_buy',
+            listingId: activeCard.id,
+            txid: txid,
+            crypto: selectedCoin,
+            expectedSats: activeExpectedUnits
+          })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          renderUnlocked(result.secretContent, bulkQty(activeCard));
+          document.getElementById('modal-pay-view').style.display = 'none';
+          document.getElementById('modal-success-view').style.display = 'block';
+          init();
+        } else {
+          alert("Verification Failed: " + result.message);
+          btn.disabled = false;
+          btn.innerText = "Verify Payment & Unlock Codes";
+        }
+      } catch (err) {
+        alert("Server error: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "Verify Payment & Unlock Codes";
+      }
+    }
+
+    function renderUnlocked(raw, qty) {
+      const box = document.getElementById('unlocked-secret-text');
+      box.innerHTML = '';
+
+      let codes = [];
+      if (Array.isArray(raw)) {
+        codes = raw.map(String);
+      } else if (typeof raw === 'string') {
+        const trimmed = raw.trim();
+        if (trimmed.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) codes = parsed.map(String);
+          } catch (e) { /* fall through */ }
+        }
+        if (codes.length === 0) {
+          codes = trimmed.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        }
+      }
+      if (codes.length === 0) codes = [String(raw || '')];
+
+      unlockedCodes = codes;
+
+      codes.forEach((code, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'code-item';
+
+        const label = document.createElement('div');
+        label.className = 'code-label';
+        label.textContent = `Code ${i + 1} / ${codes.length}`;
+
+        const val = document.createElement('div');
+        val.className = 'code-value';
+        val.textContent = code;
+
+        wrap.appendChild(label);
+        wrap.appendChild(val);
+        box.appendChild(wrap);
+      });
+
+      const sub = document.getElementById('success-sub');
+      sub.textContent = codes.length > 1
+        ? `${codes.length} codes unlocked.`
+        : `1 code unlocked.`;
+    }
+
+    function closeModal() {
+      document.getElementById('checkout-modal').classList.remove('active');
+    }
+
+    function copyAddr() {
+      navigator.clipboard.writeText(document.getElementById('modal-crypto-address').innerText);
+      alert(`${selectedCoin} Address Copied!`);
+    }
+
+    function copySecret() {
+      if (unlockedCodes.length === 0) return;
+      navigator.clipboard.writeText(unlockedCodes.join('\n'));
+      alert(`${unlockedCodes.length} code${unlockedCodes.length === 1 ? '' : 's'} copied to clipboard.`);
+    }
+
+    init();
+  </script>
+</body>
+</html>
