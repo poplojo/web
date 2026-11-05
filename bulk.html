@@ -51,12 +51,27 @@
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
     .card-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .card-item.is-sold { opacity: 0.6; filter: grayscale(50%); }
-    .card-image-box { width: 100%; aspect-ratio: 4 / 3; background: #f1f5f9; display: flex; align-items: center; justify-content: center; position: relative; }
-    .card-image-box img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* No-Image Card Visual Placeholder */
+    .card-image-box {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      color: #94a3b8;
+    }
+    .bundle-icon { font-size: 2.8rem; margin-bottom: 4px; }
+    .bundle-text-tag { font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.05em; }
+
     .badge-status { position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; }
     .badge-btc { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
     .badge-sold { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
     .badge-bulk { position: absolute; top: 10px; right: 10px; background: var(--btc); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; }
+
     .card-body { padding: 14px 16px; display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
     .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
     .card-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -72,7 +87,6 @@
     .modal-box { background: var(--surface); width: 100%; max-width: 520px; max-height: 90vh; border-radius: 16px; overflow-y: auto; padding: 24px; position: relative; }
     .modal-close { position: absolute; top: 12px; right: 12px; border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; background: #fff; }
 
-    /* Crypto Switcher Tabs */
     .crypto-tabs { display: flex; gap: 8px; margin: 14px 0; }
     .crypto-tab { flex: 1; padding: 9px; border-radius: 8px; border: 2px solid var(--border); background: #f8fafc; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center; }
     .crypto-tab.active-btc { border-color: var(--btc); background: #fff7ed; color: #c2410c; }
@@ -93,7 +107,7 @@
     .code-item { margin-top: 10px; }
     .code-item:first-child { margin-top: 8px; }
     .code-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #15803d; letter-spacing: 0.03em; }
-    .code-value { background: #fff; border: 1px solid var(--green-border); border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.95rem; font-weight: 700; color: #14532d; word-break: break-all; white-space: pre-wrap; margin-top: 4px; user-select: all; }
+    .code-value { background: #fff; border: 1px solid var(--green-border); border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.88rem; font-weight: 700; color: #14532d; word-break: break-all; white-space: pre-wrap; margin-top: 4px; user-select: all; }
 
     .bulk-count-banner {
       display: inline-block;
@@ -119,7 +133,7 @@
     <div class="nav-container">
       <div class="brand">
         <h1>gemvi — Bulk</h1>
-        <p>Credit Card Bundles (BTC & LTC)</p>
+        <p>Credit Card & Gift Card Bundles (BTC & LTC)</p>
       </div>
       <a href="index.html" class="back-link">← Back to Store</a>
     </div>
@@ -128,7 +142,7 @@
   <main>
     <div class="page-head">
       <h2>Bulk Card Store</h2>
-      <p>Multiple codes delivered in one purchase. Instant delivery on blockchain confirmation.</p>
+      <p>Multiple codes delivered in one bundle. Instant delivery on blockchain confirmation.</p>
     </div>
 
     <div class="cards-grid" id="listings-container">
@@ -193,6 +207,127 @@
   </div>
 
   <script>
+    // ----------------------------------------------------
+    // FAKE BULK CARD LISTINGS (No Images, Ready to Buy/Test)
+    // ----------------------------------------------------
+    const FAKE_BULK_LISTINGS = [
+      {
+        id: "bulk-visa-50",
+        title: "10x $50 Visa Prepaid Virtual Cards",
+        price: "380.00",
+        currency: "USD",
+        bulkQty: 10,
+        bulk: true,
+        sold: false,
+        image: null,
+        description: "Wholesale lot of 10 virtual prepaid Visa codes ($50 balance each). Global acceptance for online checkouts.",
+        secretContent: [
+          "Card 1: 4147 2028 1192 8401 | EXP: 08/28 | CVV: 492 | Balance: $50.00",
+          "Card 2: 4147 2028 3391 7712 | EXP: 08/28 | CVV: 183 | Balance: $50.00",
+          "Card 3: 4147 2028 4402 9918 | EXP: 08/28 | CVV: 729 | Balance: $50.00",
+          "Card 4: 4147 2028 5591 2284 | EXP: 08/28 | CVV: 314 | Balance: $50.00",
+          "Card 5: 4147 2028 6682 1109 | EXP: 08/28 | CVV: 605 | Balance: $50.00",
+          "Card 6: 4147 2028 7719 4432 | EXP: 08/28 | CVV: 928 | Balance: $50.00",
+          "Card 7: 4147 2028 8820 6651 | EXP: 08/28 | CVV: 237 | Balance: $50.00",
+          "Card 8: 4147 2028 9931 8847 | EXP: 08/28 | CVV: 512 | Balance: $50.00",
+          "Card 9: 4147 2028 1042 5593 | EXP: 08/28 | CVV: 846 | Balance: $50.00",
+          "Card 10: 4147 2028 2153 7704 | EXP: 08/28 | CVV: 371 | Balance: $50.00"
+        ]
+      },
+      {
+        id: "bulk-vanilla-100",
+        title: "5x $100 Vanilla e-Gift Voucher Bundle",
+        price: "395.00",
+        currency: "USD",
+        bulkQty: 5,
+        bulk: true,
+        sold: false,
+        image: null,
+        description: "5x $100 Vanilla digital voucher cards. Clean, unredeemed batch with full 16-digit codes and CVV security codes.",
+        secretContent: [
+          "Vanilla #1: 4034 8920 1192 4810 | EXP: 11/27 | CVV: 819 | $100.00",
+          "Vanilla #2: 4034 8920 3381 9924 | EXP: 11/27 | CVV: 247 | $100.00",
+          "Vanilla #3: 4034 8920 5519 2281 | EXP: 11/27 | CVV: 631 | $100.00",
+          "Vanilla #4: 4034 8920 7742 8810 | EXP: 11/27 | CVV: 408 | $100.00",
+          "Vanilla #5: 4034 8920 9928 3341 | EXP: 11/27 | CVV: 952 | $100.00"
+        ]
+      },
+      {
+        id: "bulk-steam-20",
+        title: "25x $20 Steam Wallet Global Digital Codes",
+        price: "375.00",
+        currency: "USD",
+        bulkQty: 25,
+        bulk: true,
+        sold: false,
+        image: null,
+        description: "Pack of 25 global $20 Steam Wallet codes ($500 total value). Region-free and ready to activate.",
+        secretContent: [
+          "Code 01: STEAM-8A2F-9K2L-33M1", "Code 02: STEAM-4P91-KK72-00X4", "Code 03: STEAM-99B2-XX11-MM49",
+          "Code 04: STEAM-77K1-99A4-22P8", "Code 05: STEAM-33L0-88X2-11V9", "Code 06: STEAM-55M2-11P9-77K0",
+          "Code 07: STEAM-11N8-33B4-88Z2", "Code 08: STEAM-66C1-44M9-99P1", "Code 09: STEAM-22X9-77L0-55A3",
+          "Code 10: STEAM-88V3-22K1-66N4", "Code 11: STEAM-44P0-99X8-33M2", "Code 12: STEAM-77M1-55B2-11K9",
+          "Code 13: STEAM-33Z8-11L9-44A0", "Code 14: STEAM-99K2-44P1-88X7", "Code 15: STEAM-55L1-88M0-22B3",
+          "Code 16: STEAM-11A9-33N2-77V4", "Code 17: STEAM-66X0-77K8-99P2", "Code 18: STEAM-22B4-99M1-55L0",
+          "Code 19: STEAM-88P1-55X2-11A9", "Code 20: STEAM-44M9-11L0-66K3", "Code 21: STEAM-77L2-66A1-33V8",
+          "Code 22: STEAM-33A0-22P9-88M4", "Code 23: STEAM-99X1-88B4-44L2", "Code 24: STEAM-55P8-44M0-11K9",
+          "Code 25: STEAM-11M2-77X9-22B1"
+        ]
+      },
+      {
+        id: "bulk-amz-25",
+        title: "20x $25 Amazon US Gift Card Claim Codes",
+        price: "410.00",
+        currency: "USD",
+        bulkQty: 20,
+        bulk: true,
+        sold: false,
+        image: null,
+        description: "Batch of 20 clean Amazon claim codes ($25 denomination). Instantly applies to gift card balance.",
+        secretContent: [
+          "AMZN-7H29-K810-PP92", "AMZN-3M19-XX48-22L9", "AMZN-9K40-11B2-77X8", "AMZN-4L82-99P1-33M0",
+          "AMZN-8P11-55L9-00A2", "AMZN-2B90-77M4-44X1", "AMZN-6X49-33A0-88K9", "AMZN-1A82-88X1-55P4",
+          "AMZN-5M09-22K8-99L1", "AMZN-9P71-44B0-11X3", "AMZN-3L28-99M2-77A4", "AMZN-7X10-55P4-22K9",
+          "AMZN-2K91-11A9-88M0", "AMZN-6B48-88L2-44P1", "AMZN-0M29-44X1-99B8", "AMZN-4P80-99K4-55L2",
+          "AMZN-8L19-55M0-11X9", "AMZN-1X72-11P9-66A4", "AMZN-5A08-66B1-33M2", "AMZN-9M41-33L8-77P0"
+        ]
+      },
+      {
+        id: "bulk-amex-200",
+        title: "3x $200 American Express e-Reward Cards",
+        price: "465.00",
+        currency: "USD",
+        bulkQty: 3,
+        bulk: true,
+        sold: false,
+        image: null,
+        description: "Lot of 3 American Express digital prepaid reward cards ($200 balance each). Ready for online checkout.",
+        secretContent: [
+          "Amex #1: 3782 8201 9912 340 | EXP: 09/28 | CID: 4891 | Balance: $200.00",
+          "Amex #2: 3782 8201 4481 928 | EXP: 09/28 | CID: 1729 | Balance: $200.00",
+          "Amex #3: 3782 8201 6619 840 | EXP: 09/28 | CID: 6302 | Balance: $200.00"
+        ]
+      },
+      {
+        id: "bulk-apple-10",
+        title: "50x $10 Apple / App Store Digital Codes",
+        price: "385.00",
+        currency: "USD",
+        bulkQty: 50,
+        bulk: true,
+        sold: false,
+        image: null,
+        description: "Wholesale lot of 50 Apple 16-digit gift voucher codes ($10 denomination). Valid for App Store, iTunes, and subscriptions.",
+        secretContent: [
+          "APPL-X819-22M1-00P4", "APPL-K492-77L0-33X9", "APPL-M110-88B4-99K2", "APPL-P948-33A9-55L1",
+          "APPL-B281-99X2-11M0", "APPL-L740-44P1-88A3", "APPL-X392-11L8-44B9", "APPL-A810-55M9-22P1",
+          "APPL-M491-22X0-77L8", "APPL-P119-77B2-33X4", "APPL-K840-33A1-99M2", "APPL-B392-88L4-55P0",
+          "APPL-L911-44X8-11A9", "APPL-X480-11M2-66B3", "APPL-A129-66P0-22L8", "APPL-M741-22A9-88X4",
+          "APPL-P390-88X1-44M2", "APPL-K118-44B4-99L0", "APPL-B849-99P2-55A1", "APPL-L210-55L8-11X9"
+        ]
+      }
+    ];
+
     let cardList = [];
     let platformBtc = "";
     let platformLtc = "";
@@ -218,11 +353,18 @@
         ltcRates = { USD: 70, EUR: 65, GBP: 55, CAD: 95 };
       }
 
-      const res = await fetch('/api/listings');
-      const data = await res.json();
-      cardList = (data.listings || []).filter(c => c.bulk === true || (c.bulkQty && c.bulkQty > 1));
-      platformBtc = data.masterBtc || "";
-      platformLtc = data.masterLtc || "";
+      // Try fetching database listings, fall back to the fake bulk cards
+      try {
+        const res = await fetch('/api/listings');
+        const data = await res.json();
+        platformBtc = data.masterBtc || "";
+        platformLtc = data.masterLtc || "";
+
+        const dbBulk = (data.listings || []).filter(c => c.bulk === true || (c.bulkQty && c.bulkQty > 1));
+        cardList = dbBulk.length > 0 ? dbBulk.concat(FAKE_BULK_LISTINGS) : FAKE_BULK_LISTINGS;
+      } catch(e) {
+        cardList = FAKE_BULK_LISTINGS;
+      }
 
       renderListings();
     }
@@ -246,13 +388,10 @@
         const div = document.createElement('div');
         div.className = `card-item ${card.sold ? 'is-sold' : ''}`;
 
-        const imgHtml = card.image
-          ? `<img src="${card.image}" alt="">`
-          : `<div style="font-size: 2.5rem;">🎴</div>`;
         const badge = card.sold
           ? `<span class="badge-status badge-sold">SOLD</span>`
           : `<span class="badge-status badge-btc">⚡ BTC / LTC</span>`;
-        const bulkBadge = `<span class="badge-bulk">× ${qty}</span>`;
+        const bulkBadge = `<span class="badge-bulk">× ${qty} Codes</span>`;
 
         const btn = card.sold
           ? `<button class="btn-buy" disabled>Sold Out</button>`
@@ -260,14 +399,16 @@
 
         const priceNum = parseFloat(card.price);
         const unitHint = qty > 1 && Number.isFinite(priceNum)
-          ? `<span class="unit-hint">≈ ${card.currency} ${(priceNum / qty).toFixed(2)} / code</span>`
+          ? `<span class="unit-hint">≈ ${card.currency} ${(priceNum / qty).toFixed(2)} / card</span>`
           : '';
 
+        // NO IMAGE — Clean Dark Bundle Card Header
         div.innerHTML = `
           <div class="card-image-box">
             ${badge}
             ${bulkBadge}
-            ${imgHtml}
+            <div class="bundle-icon">💳</div>
+            <div class="bundle-text-tag">${qty}x Card Bundle</div>
           </div>
           <div class="card-body">
             <div>
@@ -281,7 +422,7 @@
             ${btn}
           </div>
         `;
-        // Safe text insertion — no HTML interpolation of user content
+
         div.querySelector('.card-title').textContent = card.title || '';
         div.querySelector('.card-desc').textContent = card.description || 'Bulk codes delivered instantly upon payment.';
         div.querySelector('.price-amount').textContent = `${card.currency} ${card.price}`;
@@ -369,6 +510,21 @@
       btn.disabled = true;
       btn.innerText = `Auditing ${selectedCoin} Blockchain & Unlocking...`;
 
+      // If it's one of the built-in fake sample listings, simulate verification
+      if (activeCard.id.startsWith("bulk-")) {
+        setTimeout(() => {
+          renderUnlocked(activeCard.secretContent, bulkQty(activeCard));
+          activeCard.sold = true;
+          document.getElementById('modal-pay-view').style.display = 'none';
+          document.getElementById('modal-success-view').style.display = 'block';
+          btn.disabled = false;
+          btn.innerText = "Verify Payment & Unlock Codes";
+          renderListings();
+        }, 1200);
+        return;
+      }
+
+      // Real database listings verification
       try {
         const res = await fetch('/api/listings', {
           method: 'POST',
@@ -430,7 +586,7 @@
 
         const label = document.createElement('div');
         label.className = 'code-label';
-        label.textContent = `Code ${i + 1} / ${codes.length}`;
+        label.textContent = `Card Code ${i + 1} / ${codes.length}`;
 
         const val = document.createElement('div');
         val.className = 'code-value';
@@ -443,8 +599,8 @@
 
       const sub = document.getElementById('success-sub');
       sub.textContent = codes.length > 1
-        ? `${codes.length} codes unlocked.`
-        : `1 code unlocked.`;
+        ? `${codes.length} codes unlocked successfully.`
+        : `1 code unlocked successfully.`;
     }
 
     function closeModal() {
@@ -459,7 +615,7 @@
     function copySecret() {
       if (unlockedCodes.length === 0) return;
       navigator.clipboard.writeText(unlockedCodes.join('\n'));
-      alert(`${unlockedCodes.length} code${unlockedCodes.length === 1 ? '' : 's'} copied to clipboard.`);
+      alert(`${unlockedCodes.length} codes copied to clipboard.`);
     }
 
     init();
