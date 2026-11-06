@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>gemvi — Bulk Card Store</title>
+  <title>gemvi bulk cards - Google Search</title>
   <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-muted: #64748b;
+      --google-blue: #1a0dab;
+      --google-visited: #681da8;
+      --google-text: #4d5156;
+      --google-title: #202124;
+      --google-border: #dfe1e5;
+      --google-hover: #f8f9fa;
       --btc: #f7931a;
       --ltc: #345d9d;
       --green: #16a34a;
@@ -18,288 +19,478 @@
       --green-border: #bbf7d0;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
-
-    .top-announcement {
-      background: #0f172a;
-      color: #f8fafc;
-      font-size: 0.85rem;
-      text-align: center;
-      padding: 9px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
+    body {
+      font-family: Arial, Roboto, -apple-system, sans-serif;
+      background: #ffffff;
+      color: var(--google-title);
+      padding-bottom: 80px;
     }
-    .top-announcement a { color: #38bdf8; font-weight: 700; text-decoration: none; }
+
+    /* Top Announcement */
+    .top-announcement {
+      background: #f8f9fa;
+      border-bottom: 1px solid #ebebeb;
+      color: #3c4043;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 8px 16px;
+    }
+    .top-announcement a {
+      color: var(--google-blue);
+      font-weight: 700;
+      text-decoration: none;
+    }
     .top-announcement a:hover { text-decoration: underline; }
 
-    header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-    .nav-container { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .brand h1 { font-size: 1.5rem; font-weight: 800; }
-    .brand p { font-size: 0.8rem; color: var(--text-muted); }
-    .back-link { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; font-weight: 600; }
-    .back-link:hover { color: var(--text); }
+    /* Google Header with Search Bar */
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid #ebebeb;
+      padding: 18px 24px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .google-logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-decoration: none;
+      color: #202124;
+      display: flex;
+      align-items: center;
+    }
+    .google-logo span:nth-child(1) { color: #4285f4; }
+    .google-logo span:nth-child(2) { color: #ea4335; }
+    .google-logo span:nth-child(3) { color: #fbbc05; }
+    .google-logo span:nth-child(4) { color: #4285f4; }
+    .google-logo span:nth-child(5) { color: #34a853; }
+    .google-logo span:nth-child(6) { color: #ea4335; }
 
-    main { max-width: 1100px; margin: 30px auto 0; padding: 0 20px; }
-
-    .page-head { margin-bottom: 22px; }
-    .page-head h2 { font-size: 1.35rem; font-weight: 800; }
-    .page-head p { font-size: 0.88rem; color: var(--text-muted); margin-top: 4px; }
-
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-    .card-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .card-item.is-sold { opacity: 0.6; filter: grayscale(50%); }
-
-    /* Card Image Container */
-    .card-image-box {
+    .search-input-wrap {
+      flex: 1;
+      min-width: 280px;
+      max-width: 650px;
+      position: relative;
+    }
+    .search-input {
       width: 100%;
-      aspect-ratio: 4 / 3;
-      background: #0f172a;
+      padding: 10px 42px 10px 18px;
+      font-size: 0.95rem;
+      border: 1px solid var(--google-border);
+      border-radius: 24px;
+      outline: none;
+      box-shadow: 0 1px 6px rgba(32,33,36,.18);
+    }
+    .search-input:focus {
+      box-shadow: 0 1px 6px rgba(32,33,36,.28);
+      border-color: transparent;
+    }
+    .search-icon-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #4285f4;
+      cursor: pointer;
+      font-size: 1.05rem;
+    }
+
+    .back-store-link {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: #70757a;
+      text-decoration: none;
+    }
+    .back-store-link:hover { text-decoration: underline; }
+
+    /* Results Layout */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px 24px 0;
+    }
+    .search-stats {
+      font-size: 0.82rem;
+      color: #70757a;
+      margin-bottom: 24px;
+      padding-bottom: 6px;
+    }
+
+    .results-list {
+      max-width: 680px;
+    }
+
+    /* Individual Google Search Result Item */
+    .result-item {
+      margin-bottom: 30px;
+    }
+    .result-item.is-sold {
+      opacity: 0.6;
+    }
+
+    .result-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: #202124;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .result-favicon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f1f3f4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    .result-domain {
+      font-weight: 500;
+    }
+    .result-path {
+      color: #5f6368;
+    }
+
+    .result-title {
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--google-blue);
+      cursor: pointer;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .result-title:hover {
+      text-decoration: underline;
+    }
+    .result-title:visited {
+      color: var(--google-visited);
+    }
+
+    .result-price-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .price-bold {
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .pill-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 12px;
+      background: #f1f3f4;
+      color: #3c4043;
+    }
+    .pill-qty { background: #fff7ed; color: #c2410c; }
+    .pill-sold { background: #fee2e2; color: #b91c1c; }
+
+    .result-snippet {
+      font-size: 0.88rem;
+      color: var(--google-text);
+      line-height: 1.58;
+      word-wrap: break-word;
+    }
+
+    .result-actions {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-checkout {
+      display: inline-block;
+      padding: 6px 14px;
+      background: #f8f9fa;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      color: #1a73e8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-checkout:hover {
+      background: #f1f3f4;
+      border-color: #dadce0;
+      color: #174ea6;
+    }
+    .btn-checkout:disabled {
+      background: #f1f3f4;
+      color: #80868b;
+      cursor: not-allowed;
+    }
+
+    /* Modal - Zero Images */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.65);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #ffffff;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      border-radius: 12px;
+      overflow-y: auto;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      border: 1px solid #dadce0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .card-image-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.25s ease;
-    }
-    .card-item:hover .card-image-box img {
-      transform: scale(1.04);
-    }
-
-    .badge-status { position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; z-index: 2; }
-    .badge-btc { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
-    .badge-sold { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-    .badge-bulk { position: absolute; top: 10px; right: 10px; background: var(--btc); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; z-index: 2; }
-
-    .card-body { padding: 14px 16px; display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
-    .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
-    .card-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    .price-amount { font-size: 1.25rem; font-weight: 800; }
-    .unit-hint { font-size: 0.78rem; color: var(--text-muted); }
-    .btn-buy { width: 100%; padding: 10px; background: #0f172a; border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
-    .btn-buy:disabled { background: #94a3b8; cursor: not-allowed; }
-
-    /* Modal */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: var(--surface); width: 100%; max-width: 520px; max-height: 90vh; border-radius: 16px; overflow-y: auto; padding: 24px; position: relative; }
-    .modal-close { position: absolute; top: 12px; right: 12px; border: 1px solid var(--border); width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; background: #fff; }
-
-    .modal-preview-img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-bottom: 14px;
-      background: #0f172a;
     }
 
     .crypto-tabs { display: flex; gap: 8px; margin: 14px 0; }
-    .crypto-tab { flex: 1; padding: 9px; border-radius: 8px; border: 2px solid var(--border); background: #f8fafc; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center; }
+    .crypto-tab {
+      flex: 1; padding: 9px;
+      border-radius: 6px;
+      border: 2px solid #dadce0;
+      background: #f8f9fa;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+    }
     .crypto-tab.active-btc { border-color: var(--btc); background: #fff7ed; color: #c2410c; }
     .crypto-tab.active-ltc { border-color: var(--ltc); background: #eff6ff; color: #1e40af; }
 
-    .escrow-box { border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 14px; border: 1px solid var(--border); }
-    .escrow-btc { background: #fff7ed; border-color: #fed7aa; }
-    .escrow-ltc { background: #eff6ff; border-color: #bfdbfe; }
-    .amount-display { font-size: 1.45rem; font-weight: 900; font-family: monospace; }
-    .qr-box { margin: 12px auto; width: 160px; height: 160px; background: #fff; padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
-    .qr-box img { width: 100%; height: 100%; }
-    .addr-bar { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-family: monospace; font-size: 0.75rem; word-break: break-all; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-copy { background: #0f172a; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-left: 6px; flex-shrink: 0; }
-    .btn-verify { width: 100%; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 14px; }
-    .btn-verify:disabled { background: #94a3b8; cursor: not-allowed; }
-
-    .unlocked-secret-card { background: var(--green-bg); border: 2px dashed var(--green); border-radius: 12px; padding: 18px; margin-top: 16px; text-align: left; }
-    .code-item { margin-top: 10px; }
-    .code-item:first-child { margin-top: 8px; }
-    .code-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #15803d; letter-spacing: 0.03em; }
-    .code-value { background: #fff; border: 1px solid var(--green-border); border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 0.88rem; font-weight: 700; color: #14532d; word-break: break-all; white-space: pre-wrap; margin-top: 4px; user-select: all; }
-
-    .bulk-count-banner {
-      display: inline-block;
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      color: #c2410c;
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 6px;
-      margin-bottom: 12px;
+    .escrow-box {
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      margin-bottom: 14px;
+      border: 1px solid #dadce0;
+      background: #f8f9fa;
     }
+    .amount-display { font-size: 1.4rem; font-weight: 800; font-family: monospace; color: #202124; }
+    .qr-box { margin: 10px auto; width: 150px; height: 150px; background: #fff; padding: 6px; border-radius: 6px; border: 1px solid #dadce0; }
+    .qr-box img { width: 100%; height: 100%; }
+    .addr-bar {
+      background: #fff;
+      border: 1px solid #dadce0;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      word-break: break-all;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-copy { background: #202124; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; margin-left: 6px; flex-shrink: 0; }
+    .btn-verify { width: 100%; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 14px; }
+    .btn-verify:disabled { background: #dadce0; color: #80868b; cursor: not-allowed; }
+
+    .unlocked-secret-card { background: var(--green-bg); border: 2px dashed var(--green); border-radius: 8px; padding: 16px; margin-top: 14px; text-align: left; }
+    .code-item { margin-top: 8px; }
+    .code-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: #15803d; }
+    .code-value { background: #fff; border: 1px solid var(--green-border); border-radius: 6px; padding: 8px 10px; font-family: monospace; font-size: 0.85rem; font-weight: 700; color: #14532d; word-break: break-all; white-space: pre-wrap; margin-top: 3px; user-select: all; }
   </style>
 </head>
 <body>
 
   <div class="top-announcement">
-    <span>Got cards to sell or have questions?</span>
+    <span>Got bulk cards to sell or questions?</span>
     <a href="https://t.me/Lugsmuth" target="_blank" rel="noopener">DM me on Telegram @Lugsmuth ↗</a>
   </div>
 
   <header>
-    <div class="nav-container">
-      <div class="brand">
-        <h1>gemvi — Bulk</h1>
-        <p>Credit Card & Gift Card Bundles (BTC & LTC)</p>
+    <div class="header-inner">
+      <a href="index.html" class="google-logo">
+        <span>g</span><span>e</span><span>m</span><span>v</span><span>i</span><span>.</span>
+      </a>
+
+      <div class="search-input-wrap">
+        <input type="text" id="search-query" class="search-input" value="bulk cards site:gemvi.com" placeholder="Search cards..." oninput="filterResults()">
+        <button class="search-icon-btn" onclick="filterResults()">🔍</button>
       </div>
-      <a href="index.html" class="back-link">← Back to Store</a>
+
+      <a href="index.html" class="back-store-link">← Store Home</a>
     </div>
   </header>
 
   <main>
-    <div class="page-head">
-      <h2>Bulk Card Store</h2>
-      <p>Multiple codes delivered in one bundle. Instant delivery on blockchain confirmation.</p>
+    <div class="search-stats" id="search-stats">
+      About 6 results (0.19 seconds)
     </div>
 
-    <div class="cards-grid" id="listings-container">
-      <div style="text-align: center; padding: 40px; color: #64748b;">Loading bulk packages...</div>
+    <div class="results-list" id="results-container">
+      <!-- Search result entries rendered here -->
     </div>
   </main>
 
-  <!-- Checkout & Instant Delivery Modal -->
+  <!-- Checkout & Instant Delivery Modal (NO IMAGES) -->
   <div class="modal-overlay" id="checkout-modal">
     <div class="modal-box">
       <button class="modal-close" onclick="closeModal()">×</button>
 
-      <!-- Screen 1: Payment Checkout -->
       <div id="modal-pay-view">
-        <img id="modal-card-image" class="modal-preview-img" src="" alt="">
-        <h3 id="modal-title" style="font-weight: 800; font-size: 1.25rem;"></h3>
-        <div id="modal-bulk-count" class="bulk-count-banner" style="display:none;"></div>
-        <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Choose your payment coin:</p>
+        <div style="font-size: 0.75rem; color: #5f6368; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Instant Delivery Package</div>
+        <h3 id="modal-title" style="font-size: 1.25rem; font-weight: 700; color: #202124; margin-bottom: 4px;"></h3>
+        <p style="font-size: 0.85rem; color: #5f6368; margin-bottom: 12px;" id="modal-qty-sub"></p>
 
         <div class="crypto-tabs">
           <div class="crypto-tab active-ltc" id="tab-ltc" onclick="selectCrypto('LTC')">Ł Litecoin (Fee < $0.01)</div>
           <div class="crypto-tab" id="tab-btc" onclick="selectCrypto('BTC')">₿ Bitcoin</div>
         </div>
 
-        <div class="escrow-box escrow-ltc" id="escrow-box">
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase;" id="crypto-label">Amount to Pay in Litecoin</div>
+        <div class="escrow-box" id="escrow-box">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #5f6368;" id="crypto-label">Amount to Pay in Litecoin</div>
           <div class="amount-display" id="modal-crypto-amount">0.00000000 LTC</div>
-          <div style="font-size: 0.8rem; margin-top: 2px;" id="modal-fiat-amount"></div>
+          <div style="font-size: 0.8rem; color: #5f6368; margin-top: 2px;" id="modal-fiat-amount"></div>
 
           <div class="qr-box">
             <img id="modal-qr" src="" alt="QR">
           </div>
 
-          <div style="font-size: 0.75rem; font-weight: 600; text-align: left;" id="address-label">Send to Litecoin Address:</div>
+          <div style="font-size: 0.72rem; color: #5f6368; font-weight: 600; text-align: left;" id="address-label">Send to Litecoin Address:</div>
           <div class="addr-bar">
             <span id="modal-crypto-address">Loading...</span>
             <button class="btn-copy" onclick="copyAddr()">Copy</button>
           </div>
         </div>
 
-        <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px;">TRANSACTION ID (TXID):</label>
-        <input type="text" id="buyer-txid" placeholder="Paste TXID from your wallet after sending" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 0.85rem;">
+        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #3c4043; margin-bottom: 4px;">TRANSACTION ID (TXID):</label>
+        <input type="text" id="buyer-txid" placeholder="Paste TXID from your wallet after sending" style="width: 100%; padding: 8px 10px; border: 1px solid #dadce0; border-radius: 4px; font-family: monospace; font-size: 0.85rem; outline: none;">
 
         <button class="btn-verify" id="verify-btn" onclick="submitAndVerifyPayment()">Verify Payment & Unlock Codes</button>
       </div>
 
-      <!-- Screen 2: Unlocked Bulk Codes -->
+      <!-- Unlocked Result Screen -->
       <div id="modal-success-view" style="display: none; text-align: center; padding: 10px 0;">
-        <div style="font-size: 3rem; color: var(--green);">✓</div>
-        <h2 style="font-weight: 800; color: #16a34a;">Payment Confirmed!</h2>
-        <p style="color: #475569; font-size: 0.9rem; margin-top: 4px;" id="success-sub">Your bulk codes are below.</p>
+        <div style="font-size: 2.8rem; color: var(--green);">✓</div>
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: #16a34a; margin-top: 4px;">Payment Verified!</h2>
+        <p style="color: #5f6368; font-size: 0.88rem; margin-top: 4px;" id="success-sub">All codes unlocked below.</p>
 
         <div class="unlocked-secret-card">
-          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #15803d;">Unlocked Codes</div>
+          <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #15803d;">Unlocked Codes</div>
           <div id="unlocked-secret-text"></div>
           <button class="btn-verify" style="margin-top: 12px; padding: 8px;" onclick="copySecret()">Copy All Codes</button>
         </div>
 
-        <button class="btn-buy" style="margin-top: 20px;" onclick="closeModal()">Close</button>
+        <button class="btn-checkout" style="margin-top: 18px; width: 100%; padding: 10px; background: #202124; color: #fff;" onclick="closeModal()">Close</button>
       </div>
 
     </div>
   </div>
 
   <script>
-    // ----------------------------------------------------
-    // GENERIC STOCK CARD PHOTOS (Authentic-looking, 0 leaked info)
-    // ----------------------------------------------------
+    // ------------------------------------------------------------------
+    // FAKE BULK LISTINGS (Formatted as clean text results, zero images)
+    // ------------------------------------------------------------------
     const FAKE_BULK_LISTINGS = [
       {
         id: "bulk-visa-50",
-        title: "10x $50 Visa Prepaid Virtual Cards",
+        pathSlug: "visa-prepaid-50x10",
+        title: "10x $50 Visa Prepaid Virtual Codes (Global Bundle)",
         price: "380.00",
         currency: "USD",
         bulkQty: 10,
         bulk: true,
         sold: false,
-        image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=700&q=80",
-        description: "Wholesale lot of 10 virtual prepaid Visa codes ($50 balance each). Global acceptance for online checkouts.",
+        description: "Verified wholesale batch of 10 virtual Visa card numbers with balances of $50.00 each. Global acceptance on any checkout taking Visa. Automatic unredacted delivery upon blockchain confirmation.",
         secretContent: [
-          "Card 1: 4147 2028 1192 8401 | EXP: 08/28 | CVV: 492 | Balance: $50.00",
-          "Card 2: 4147 2028 3391 7712 | EXP: 08/28 | CVV: 183 | Balance: $50.00",
-          "Card 3: 4147 2028 4402 9918 | EXP: 08/28 | CVV: 729 | Balance: $50.00",
-          "Card 4: 4147 2028 5591 2284 | EXP: 08/28 | CVV: 314 | Balance: $50.00",
-          "Card 5: 4147 2028 6682 1109 | EXP: 08/28 | CVV: 605 | Balance: $50.00",
-          "Card 6: 4147 2028 7719 4432 | EXP: 08/28 | CVV: 928 | Balance: $50.00",
-          "Card 7: 4147 2028 8820 6651 | EXP: 08/28 | CVV: 237 | Balance: $50.00",
-          "Card 8: 4147 2028 9931 8847 | EXP: 08/28 | CVV: 512 | Balance: $50.00",
-          "Card 9: 4147 2028 1042 5593 | EXP: 08/28 | CVV: 846 | Balance: $50.00",
+          "Card 01: 4147 2028 1192 8401 | EXP: 08/28 | CVV: 492 | Balance: $50.00",
+          "Card 02: 4147 2028 3391 7712 | EXP: 08/28 | CVV: 183 | Balance: $50.00",
+          "Card 03: 4147 2028 4402 9918 | EXP: 08/28 | CVV: 729 | Balance: $50.00",
+          "Card 04: 4147 2028 5591 2284 | EXP: 08/28 | CVV: 314 | Balance: $50.00",
+          "Card 05: 4147 2028 6682 1109 | EXP: 08/28 | CVV: 605 | Balance: $50.00",
+          "Card 06: 4147 2028 7719 4432 | EXP: 08/28 | CVV: 928 | Balance: $50.00",
+          "Card 07: 4147 2028 8820 6651 | EXP: 08/28 | CVV: 237 | Balance: $50.00",
+          "Card 08: 4147 2028 9931 8847 | EXP: 08/28 | CVV: 512 | Balance: $50.00",
+          "Card 09: 4147 2028 1042 5593 | EXP: 08/28 | CVV: 846 | Balance: $50.00",
           "Card 10: 4147 2028 2153 7704 | EXP: 08/28 | CVV: 371 | Balance: $50.00"
         ]
       },
       {
         id: "bulk-vanilla-100",
-        title: "5x $100 Vanilla e-Gift Voucher Bundle",
+        pathSlug: "vanilla-egift-100x5",
+        title: "5x $100 Vanilla e-Gift Digital Voucher Lot",
         price: "395.00",
         currency: "USD",
         bulkQty: 5,
         bulk: true,
         sold: false,
-        image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=700&q=80",
-        description: "5x $100 Vanilla digital voucher cards. Clean, unredeemed batch with full 16-digit codes and CVV security codes.",
+        description: "Package of 5 fresh unredeemed Vanilla digital voucher cards ($500 combined value). Full 16-digit card digits, exp dates, and 3-digit CVV security codes included with instant digital reveal.",
         secretContent: [
-          "Vanilla #1: 4034 8920 1192 4810 | EXP: 11/27 | CVV: 819 | $100.00",
-          "Vanilla #2: 4034 8920 3381 9924 | EXP: 11/27 | CVV: 247 | $100.00",
-          "Vanilla #3: 4034 8920 5519 2281 | EXP: 11/27 | CVV: 631 | $100.00",
-          "Vanilla #4: 4034 8920 7742 8810 | EXP: 11/27 | CVV: 408 | $100.00",
-          "Vanilla #5: 4034 8920 9928 3341 | EXP: 11/27 | CVV: 952 | $100.00"
+          "Vanilla 1: 4034 8920 1192 4810 | EXP: 11/27 | CVV: 819 | $100.00",
+          "Vanilla 2: 4034 8920 3381 9924 | EXP: 11/27 | CVV: 247 | $100.00",
+          "Vanilla 3: 4034 8920 5519 2281 | EXP: 11/27 | CVV: 631 | $100.00",
+          "Vanilla 4: 4034 8920 7742 8810 | EXP: 11/27 | CVV: 408 | $100.00",
+          "Vanilla 5: 4034 8920 9928 3341 | EXP: 11/27 | CVV: 952 | $100.00"
         ]
       },
       {
         id: "bulk-steam-20",
-        title: "25x $20 Steam Wallet Global Digital Codes",
+        pathSlug: "steam-wallet-20x25",
+        title: "25x $20 Steam Wallet Global Digital Code Pack",
         price: "375.00",
         currency: "USD",
         bulkQty: 25,
         bulk: true,
         sold: false,
-        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=700&q=80",
-        description: "Pack of 25 global $20 Steam Wallet codes ($500 total value). Region-free and ready to activate.",
+        description: "25 global Steam activation keys with $20.00 wallet credit each ($500.00 total face value). Region-free codes applicable directly to any Steam account. Instant batch download upon BTC/LTC transaction.",
         secretContent: [
-          "Code 01: STEAM-8A2F-9K2L-33M1", "Code 02: STEAM-4P91-KK72-00X4", "Code 03: STEAM-99B2-XX11-MM49",
-          "Code 04: STEAM-77K1-99A4-22P8", "Code 05: STEAM-33L0-88X2-11V9", "Code 06: STEAM-55M2-11P9-77K0",
-          "Code 07: STEAM-11N8-33B4-88Z2", "Code 08: STEAM-66C1-44M9-99P1", "Code 09: STEAM-22X9-77L0-55A3",
-          "Code 10: STEAM-88V3-22K1-66N4", "Code 11: STEAM-44P0-99X8-33M2", "Code 12: STEAM-77M1-55B2-11K9",
-          "Code 13: STEAM-33Z8-11L9-44A0", "Code 14: STEAM-99K2-44P1-88X7", "Code 15: STEAM-55L1-88M0-22B3",
-          "Code 16: STEAM-11A9-33N2-77V4", "Code 17: STEAM-66X0-77K8-99P2", "Code 18: STEAM-22B4-99M1-55L0",
-          "Code 19: STEAM-88P1-55X2-11A9", "Code 20: STEAM-44M9-11L0-66K3", "Code 21: STEAM-77L2-66A1-33V8",
-          "Code 22: STEAM-33A0-22P9-88M4", "Code 23: STEAM-99X1-88B4-44L2", "Code 24: STEAM-55P8-44M0-11K9",
-          "Code 25: STEAM-11M2-77X9-22B1"
+          "STEAM-8A2F-9K2L-33M1", "STEAM-4P91-KK72-00X4", "STEAM-99B2-XX11-MM49",
+          "STEAM-77K1-99A4-22P8", "STEAM-33L0-88X2-11V9", "STEAM-55M2-11P9-77K0",
+          "STEAM-11N8-33B4-88Z2", "STEAM-66C1-44M9-99P1", "STEAM-22X9-77L0-55A3",
+          "STEAM-88V3-22K1-66N4", "STEAM-44P0-99X8-33M2", "STEAM-77M1-55B2-11K9",
+          "STEAM-33Z8-11L9-44A0", "STEAM-99K2-44P1-88X7", "STEAM-55L1-88M0-22B3",
+          "STEAM-11A9-33N2-77V4", "STEAM-66X0-77K8-99P2", "STEAM-22B4-99M1-55L0",
+          "STEAM-88P1-55X2-11A9", "STEAM-44M9-11L0-66K3", "STEAM-77L2-66A1-33V8",
+          "STEAM-33A0-22P9-88M4", "STEAM-99X1-88B4-44L2", "STEAM-55P8-44M0-11K9",
+          "STEAM-11M2-77X9-22B1"
         ]
       },
       {
         id: "bulk-amz-25",
-        title: "20x $25 Amazon US Gift Card Claim Codes",
+        pathSlug: "amazon-us-25x20",
+        title: "20x $25 Amazon Gift Card Claim Codes (US Region)",
         price: "410.00",
         currency: "USD",
         bulkQty: 20,
         bulk: true,
         sold: false,
-        image: "https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=700&q=80",
-        description: "Batch of 20 clean Amazon claim codes ($25 denomination). Instantly applies to gift card balance.",
+        description: "Wholesale lot of 20 unapplied Amazon.com gift codes ($25.00 each). Direct claim format without expiration date. Clean batch sourced from verified platform suppliers.",
         secretContent: [
           "AMZN-7H29-K810-PP92", "AMZN-3M19-XX48-22L9", "AMZN-9K40-11B2-77X8", "AMZN-4L82-99P1-33M0",
           "AMZN-8P11-55L9-00A2", "AMZN-2B90-77M4-44X1", "AMZN-6X49-33A0-88K9", "AMZN-1A82-88X1-55P4",
@@ -310,14 +501,14 @@
       },
       {
         id: "bulk-amex-200",
-        title: "3x $200 American Express e-Reward Cards",
+        pathSlug: "amex-reward-200x3",
+        title: "3x $200 American Express Digital Reward Cards",
         price: "465.00",
         currency: "USD",
         bulkQty: 3,
         bulk: true,
         sold: false,
-        image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=700&q=80",
-        description: "Lot of 3 American Express digital prepaid reward cards ($200 balance each). Ready for online checkout.",
+        description: "Batch of 3 Amex e-Reward cards ($200.00 balance each, $600.00 total). Ready for direct online checkout usage across all US payment processors.",
         secretContent: [
           "Amex #1: 3782 8201 9912 340 | EXP: 09/28 | CID: 4891 | Balance: $200.00",
           "Amex #2: 3782 8201 4481 928 | EXP: 09/28 | CID: 1729 | Balance: $200.00",
@@ -326,14 +517,14 @@
       },
       {
         id: "bulk-apple-10",
-        title: "50x $10 Apple / App Store Digital Codes",
+        pathSlug: "apple-appstore-10x50",
+        title: "50x $10 Apple / App Store Digital Redemption Vouchers",
         price: "385.00",
         currency: "USD",
         bulkQty: 50,
         bulk: true,
         sold: false,
-        image: "https://images.unsplash.com/photo-1589758438368-0ad531db3366?auto=format&fit=crop&w=700&q=80",
-        description: "Wholesale lot of 50 Apple 16-digit gift voucher codes ($10 denomination). Valid for App Store, iTunes, and subscriptions.",
+        description: "50 clean individual 16-digit Apple gift codes ($10 denomination). Valid for apps, subscriptions, and digital media. Instant multiline copy delivery.",
         secretContent: [
           "APPL-X819-22M1-00P4", "APPL-K492-77L0-33X9", "APPL-M110-88B4-99K2", "APPL-P948-33A9-55L1",
           "APPL-B281-99X2-11M0", "APPL-L740-44P1-88A3", "APPL-X392-11L8-44B9", "APPL-A810-55M9-22P1",
@@ -344,7 +535,8 @@
       }
     ];
 
-    let cardList = [];
+    let allListings = [];
+    let displayedListings = [];
     let platformBtc = "";
     let platformLtc = "";
     let btcRates = null;
@@ -360,10 +552,8 @@
           fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC'),
           fetch('https://api.coinbase.com/v2/exchange-rates?currency=LTC')
         ]);
-        const btcData = await btcRes.json();
-        const ltcData = await ltcRes.json();
-        btcRates = btcData.data.rates;
-        ltcRates = ltcData.data.rates;
+        btcRates = (await btcRes.json()).data.rates;
+        ltcRates = (await ltcRes.json()).data.rates;
       } catch(e) {
         btcRates = { USD: 65000, EUR: 60000, GBP: 51000, CAD: 90000 };
         ltcRates = { USD: 70, EUR: 65, GBP: 55, CAD: 95 };
@@ -376,12 +566,13 @@
         platformLtc = data.masterLtc || "";
 
         const dbBulk = (data.listings || []).filter(c => c.bulk === true || (c.bulkQty && c.bulkQty > 1));
-        cardList = dbBulk.length > 0 ? dbBulk.concat(FAKE_BULK_LISTINGS) : FAKE_BULK_LISTINGS;
+        allListings = dbBulk.length > 0 ? dbBulk.concat(FAKE_BULK_LISTINGS) : FAKE_BULK_LISTINGS;
       } catch(e) {
-        cardList = FAKE_BULK_LISTINGS;
+        allListings = FAKE_BULK_LISTINGS;
       }
 
-      renderListings();
+      displayedListings = allListings;
+      renderResults();
     }
 
     function bulkQty(card) {
@@ -389,86 +580,93 @@
       return Number.isFinite(q) && q > 0 ? q : 1;
     }
 
-    function renderListings() {
-      const container = document.getElementById('listings-container');
+    function filterResults() {
+      const query = (document.getElementById('search-query').value || "").toLowerCase();
+      // Remove search modifiers for filtering
+      const cleanTerm = query.replace("site:gemvi.com", "").replace("bulk cards", "").trim();
+
+      if (!cleanTerm) {
+        displayedListings = allListings;
+      } else {
+        displayedListings = allListings.filter(c => 
+          (c.title || "").toLowerCase().includes(cleanTerm) ||
+          (c.description || "").toLowerCase().includes(cleanTerm)
+        );
+      }
+
+      document.getElementById('search-stats').innerText = `About ${displayedListings.length} results (0.${Math.floor(Math.random() * 20) + 12} seconds)`;
+      renderResults();
+    }
+
+    function renderResults() {
+      const container = document.getElementById('results-container');
       container.innerHTML = '';
 
-      if (cardList.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1;">No bulk packages listed right now. Check back soon!</div>';
+      if (displayedListings.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 30px 0; color: #70757a;">
+            Your search did not match any bulk cards.<br><br>
+            Suggestions:<br>
+            • Make sure that all words are spelled correctly.<br>
+            • Try different keywords (e.g. "visa", "steam", "vanilla").
+          </div>
+        `;
         return;
       }
 
-      cardList.forEach((card, index) => {
+      displayedListings.forEach((card, index) => {
         const qty = bulkQty(card);
-        const div = document.createElement('div');
-        div.className = `card-item ${card.sold ? 'is-sold' : ''}`;
-
-        const badge = card.sold
-          ? `<span class="badge-status badge-sold">SOLD</span>`
-          : `<span class="badge-status badge-btc">⚡ BTC / LTC</span>`;
-        const bulkBadge = `<span class="badge-bulk">× ${qty} Cards</span>`;
-
-        const btn = card.sold
-          ? `<button class="btn-buy" disabled>Sold Out</button>`
-          : `<button class="btn-buy" onclick="openCheckout(${index})">Buy Bundle</button>`;
-
         const priceNum = parseFloat(card.price);
-        const unitHint = qty > 1 && Number.isFinite(priceNum)
-          ? `<span class="unit-hint">≈ ${card.currency} ${(priceNum / qty).toFixed(2)} / card</span>`
+        const perUnitPrice = Number.isFinite(priceNum) && qty > 1 
+          ? `(≈ ${card.currency} ${(priceNum / qty).toFixed(2)}/card)`
           : '';
 
-        const cardImg = card.image || "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=700&q=80";
+        const slug = card.pathSlug || card.id || "card";
+        const div = document.createElement('div');
+        div.className = `result-item ${card.sold ? 'is-sold' : ''}`;
+
+        const statusTag = card.sold 
+          ? `<span class="pill-tag pill-sold">SOLD</span>` 
+          : `<span class="pill-tag" style="background:#e6f4ea; color:#137333;">In Stock</span>`;
 
         div.innerHTML = `
-          <div class="card-image-box">
-            ${badge}
-            ${bulkBadge}
-            <img src="${cardImg}" alt="${card.title}">
+          <div class="result-breadcrumb">
+            <span class="result-favicon">🌐</span>
+            <span class="result-domain">https://gemvi.com</span>
+            <span class="result-path">› bulk › ${slug}</span>
           </div>
-          <div class="card-body">
-            <div>
-              <h3 class="card-title"></h3>
-              <p class="card-desc"></p>
-              <div class="price-row">
-                <span class="price-amount"></span>
-                ${unitHint}
-              </div>
-            </div>
-            ${btn}
+
+          <h3 class="result-title" onclick="openCheckout(${index})">${card.title}</h3>
+
+          <div class="result-price-line">
+            <span class="price-bold">${card.currency} ${card.price}</span>
+            <span class="pill-tag pill-qty">${qty}x Bundle</span>
+            <span style="font-size: 0.8rem; color: #5f6368;">${perUnitPrice}</span>
+            ${statusTag}
+          </div>
+
+          <p class="result-snippet">${card.description}</p>
+
+          <div class="result-actions">
+            <button class="btn-checkout" onclick="openCheckout(${index})" ${card.sold ? 'disabled' : ''}>
+              ${card.sold ? 'Sold Out' : '⚡ Buy with Bitcoin / Litecoin'}
+            </button>
           </div>
         `;
 
-        div.querySelector('.card-title').textContent = card.title || '';
-        div.querySelector('.card-desc').textContent = card.description || 'Bulk codes delivered instantly upon payment.';
-        div.querySelector('.price-amount').textContent = `${card.currency} ${card.price}`;
         container.appendChild(div);
       });
     }
 
     function openCheckout(index) {
-      activeCard = cardList[index];
+      activeCard = displayedListings[index];
       const qty = bulkQty(activeCard);
 
       document.getElementById('modal-pay-view').style.display = 'block';
       document.getElementById('modal-success-view').style.display = 'none';
-      document.getElementById('modal-title').textContent = activeCard.title || '';
+      document.getElementById('modal-title').innerText = activeCard.title || '';
+      document.getElementById('modal-qty-sub').innerText = `Batch package: ${qty} codes will be delivered instantly.`;
       document.getElementById('buyer-txid').value = '';
-
-      const modalImg = document.getElementById('modal-card-image');
-      if (activeCard.image) {
-        modalImg.src = activeCard.image;
-        modalImg.style.display = 'block';
-      } else {
-        modalImg.style.display = 'none';
-      }
-
-      const bulkBanner = document.getElementById('modal-bulk-count');
-      if (qty > 1) {
-        bulkBanner.style.display = 'inline-block';
-        bulkBanner.textContent = `Bundle contains ${qty} cards`;
-      } else {
-        bulkBanner.style.display = 'none';
-      }
 
       selectCrypto('LTC');
       document.getElementById('checkout-modal').classList.add('active');
@@ -486,7 +684,6 @@
       if (coin === 'LTC') {
         tabLtc.className = 'crypto-tab active-ltc';
         tabBtc.className = 'crypto-tab';
-        box.className = 'escrow-box escrow-ltc';
         document.getElementById('crypto-label').innerText = 'Amount to Pay in Litecoin';
         document.getElementById('address-label').innerText = 'Send to Litecoin Address:';
         addrSpan.innerText = platformLtc || 'Litecoin address not set';
@@ -498,14 +695,13 @@
 
         const ltcAmount = (activeExpectedUnits / 100000000).toFixed(8);
         document.getElementById('modal-crypto-amount').innerText = `${ltcAmount} LTC`;
-        document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price} (Fee < $0.01)`;
+        document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price} (Network fee < $0.01)`;
 
         const qrUri = `litecoin:${platformLtc}?amount=${ltcAmount}`;
-        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrUri)}`;
+        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUri)}`;
       } else {
         tabBtc.className = 'crypto-tab active-btc';
         tabLtc.className = 'crypto-tab';
-        box.className = 'escrow-box escrow-btc';
         document.getElementById('crypto-label').innerText = 'Amount to Pay in Bitcoin';
         document.getElementById('address-label').innerText = 'Send to Bitcoin Address:';
         addrSpan.innerText = platformBtc || 'Bitcoin address not set';
@@ -520,7 +716,7 @@
         document.getElementById('modal-fiat-amount').innerText = `≈ ${activeCard.currency} ${activeCard.price}`;
 
         const qrUri = `bitcoin:${platformBtc}?amount=${btcAmount}`;
-        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrUri)}`;
+        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUri)}`;
       }
     }
 
@@ -528,10 +724,10 @@
       const txid = document.getElementById('buyer-txid').value.trim();
       const btn = document.getElementById('verify-btn');
 
-      if (!txid) return alert(`Please enter the ${selectedCoin} Transaction ID (TxID) after sending.`);
+      if (!txid) return alert(`Please enter your ${selectedCoin} Transaction ID (TxID).`);
 
       btn.disabled = true;
-      btn.innerText = `Auditing ${selectedCoin} Blockchain & Unlocking...`;
+      btn.innerText = `Auditing ${selectedCoin} Network & Unlocking...`;
 
       // Built-in test listing simulation
       if (activeCard.id.startsWith("bulk-")) {
@@ -542,12 +738,12 @@
           document.getElementById('modal-success-view').style.display = 'block';
           btn.disabled = false;
           btn.innerText = "Verify Payment & Unlock Codes";
-          renderListings();
-        }, 1200);
+          renderResults();
+        }, 1100);
         return;
       }
 
-      // Real blockchain verification
+      // Real database listings verification
       try {
         const res = await fetch('/api/listings', {
           method: 'POST',
@@ -620,10 +816,7 @@
         box.appendChild(wrap);
       });
 
-      const sub = document.getElementById('success-sub');
-      sub.textContent = codes.length > 1
-        ? `${codes.length} codes unlocked successfully.`
-        : `1 code unlocked successfully.`;
+      document.getElementById('success-sub').textContent = `${codes.length} codes verified & unlocked below.`;
     }
 
     function closeModal() {
